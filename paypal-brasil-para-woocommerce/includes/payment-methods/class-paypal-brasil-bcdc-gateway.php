@@ -86,7 +86,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		// If it's first load, add a instance of this.
 		self::$instance = $this;
 		
-		add_action('woocommerce_checkout_show_terms', array($this,'disable_checkout_terms_and_conditions'), 10 );	
+		//add_action('woocommerce_checkout_show_terms', array($this,'disable_checkout_terms_and_conditions'), 10 );	
 	}
 
 	function disable_checkout_terms_and_conditions( ) {
@@ -1002,7 +1002,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			// Set shipping only when isn't digital
 			if (!$only_digital_items) {
 
-				if ($shipping_method == 'local_pickup') {
+				if (isset($shipping_method) && $shipping_method == 'local_pickup') {
 
 					$shipping = array(
 						'shipping' => array(
@@ -1014,34 +1014,42 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 					);
 
 					$payment_data['payment_source']['paypal']['experience_context']['shipping_preference'] = 'NO_SHIPPING';
+					$payment_data['purchase_units'][0] = array_merge($payment_data['purchase_units'][0], $shipping);
 
 				} else {
 
 
 					$shipping_address = $this->get_payer_address($data);
 
-					$shipping = array(
-						'shipping' => array(
-							'type' => 'SHIPPING',
-							'name' => array(
-								'full_name' => $data['first_name'] . " " . $data['last_name'],
-							),
-							'address' => $shipping_address
-						)
-					);
+					if ($this->validate_address($shipping_address)) {
+						$shipping = array(
+							'shipping' => array(
+								'type' => 'SHIPPING',
+								'name' => array(
+									'full_name' => $data['first_name'] . " " . $data['last_name'],
+								),
+								'address' => $shipping_address
+							)
+						);
+
+						$payment_data['payment_source']['paypal']['address'] = $shipping_address;
+
+						$payment_data['purchase_units'][0] = array_merge($payment_data['purchase_units'][0], $shipping);
+					}
+
+
 
 					$payment_data['payment_source']['paypal']['experience_context']['shipping_preference'] = 'SET_PROVIDED_ADDRESS';
 
 				}
 
-				$payment_data['purchase_units'][0] = array_merge($payment_data['purchase_units'][0], $shipping);
 			}
 
 		}
 
 		$payment_data['payment_source']['paypal'] = $this->get_payer_info($data);
-		//Info Payer address data.
-		$payment_data['payment_source']['paypal']['address'] = $shipping_address;
+
+	
 
 		//Capture item on the cart;
 		$items_cart = $wc_cart->get_cart_contents();
@@ -1083,7 +1091,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 		}
 
-		$exception = new Exception(__('An unexpected error occurred, please try again. If the error persists, contact. (#56)', "paypal-brasil-para-woocommerce"));
+		$error_message = str_replace('"', '', $error_data['message']);
+		$exception = new Exception(__("{$error_message} An unexpected error occurred, please try again. If the error persists, contact. (#56)", "paypal-brasil-para-woocommerce"));
 		$exception->data = $exception_data;
 
 		throw $exception;
@@ -1171,7 +1180,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			// Set shipping only when isn't digital
 			if (!$only_digital_items) {
 
-				if ($shipping_method == 'local_pickup') {
+				if (isset($shipping_method) && $shipping_method == 'local_pickup') {
 
 					$shipping = array(
 						'shipping' => array(
@@ -1184,26 +1193,33 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 					$payment_data['payment_source']['paypal']['experience_context']['shipping_preference'] = 'NO_SHIPPING';
 
+					$payment_data['purchase_units'][0] = array_merge($payment_data['purchase_units'][0], $shipping);
+
 				} else {
 
 
 					$shipping_address = $this->get_payer_address($data);
 
-					$shipping = array(
-						'shipping' => array(
-							'type' => 'SHIPPING',
-							'name' => array(
-								'full_name' => $data['first_name'] . " " . $data['last_name'],
-							),
-							'address' => $shipping_address
-						)
-					);
+					if ($this->validate_address($shipping_address)) {
+
+						$shipping = array(
+							'shipping' => array(
+								'type' => 'SHIPPING',
+								'name' => array(
+									'full_name' => $data['first_name'] . " " . $data['last_name'],
+								),
+								'address' => $shipping_address
+							)
+						);
+
+						$payment_data['purchase_units'][0] = array_merge($payment_data['purchase_units'][0], $shipping);
+					}
 
 					$payment_data['payment_source']['paypal']['experience_context']['shipping_preference'] = 'SET_PROVIDED_ADDRESS';
 
 				}
 
-				$payment_data['purchase_units'][0] = array_merge($payment_data['purchase_units'][0], $shipping);
+				
 			}
 
 		}
@@ -1250,7 +1266,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			}
 		}
 
-		$exception = new Exception(__('An unexpected error occurred, please try again. If the error persists, please contact us. (#56)', "paypal-brasil-para-woocommerce"));
+		$error_message = str_replace('"', '', $error_data['message']);
+		$exception = new Exception(__("{$error_message} An unexpected error occurred, please try again. If the error persists, contact. (#56)", "paypal-brasil-para-woocommerce"));
 		$exception->data = $exception_data;
 
 		throw $exception;
@@ -1274,7 +1291,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		$address_line_1 = array();
 		// Add the address
 		if ($data['address']) {
-			$address_line_1[] = $data['address'];
+			//$address_line_1[] = $data['address'];
 		}
 		// Add the number
 		if ($data['number']) {
@@ -1304,6 +1321,18 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		}
 
 		return $shipping_address;
+	}
+
+	public function validate_address(array $data): bool{
+		$adressFields = ['address',	'number','neighborhood', 'address_2','state', 'city', 'postcode', 'country','address_line_1','address_line_2'];
+		$isValid = true; 
+		foreach ($adressFields as $value) {
+			if (!isset($data[$value])) {
+				$isValid = false;
+			}
+		}
+
+		return $isValid;
 	}
 
 	public function get_payer_info($data = null)

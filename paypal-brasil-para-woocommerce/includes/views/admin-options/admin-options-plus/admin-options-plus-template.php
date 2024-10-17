@@ -25,13 +25,6 @@
 							"paypal-brasil-para-woocommerce" ); ?></strong>
                 </p>
             </div>
-		<?php elseif ( ( ! empty( $_POST ) && $this->get_updated_values()['reference_enabled'] === 'yes' && get_option( $this->get_option_key() . '_reference_transaction_validator' ) === 'no' )
-		               || ( empty( $_POST ) && $this->reference_enabled === 'yes' && get_option( $this->get_option_key() . '_reference_transaction_validator' ) === 'no' ) ): ?>
-            <div id="message" class="error inline">
-                <p>
-                    <strong><?php _e( "It was not possible to activate the \"Save Digital Wallet\" functionality because we verified that your PayPal account does not have permission to use this product. Contact PayPal at 0800 721 6959 and request its release.","paypal-brasil-para-woocommerce" ); ?></strong>
-                </p>
-            </div>
 		<?php endif; ?>
 
         <!-- WEBHOOK -->
