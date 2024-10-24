@@ -1092,7 +1092,10 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		}
 
 		$error_message = str_replace('"', '', $error_data['message']);
-		$exception = new Exception(__("{$error_message} An unexpected error occurred, please try again. If the error persists, contact. (#56)", "paypal-brasil-para-woocommerce"));
+		$debug_id   = str_replace('"', '', $error_data['debug_id']);
+		$exception = new Exception(__("Ocorreu um erro, no CREATE_ORDER, \n
+												Mensagem original: {$error_message} \n
+												Identificador do erro: {$debug_id}", "paypal-brasil-para-woocommerce"));
 		$exception->data = $exception_data;
 
 		throw $exception;
@@ -1267,7 +1270,10 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		}
 
 		$error_message = str_replace('"', '', $error_data['message']);
-		$exception = new Exception(__("{$error_message} An unexpected error occurred, please try again. If the error persists, contact. (#56)", "paypal-brasil-para-woocommerce"));
+		$debug_id   = str_replace('"', '', $error_data['debug_id']);
+		$exception = new Exception(__("Ocorreu um erro, no CREATE_ORDER, \n
+												Mensagem original: {$error_message} \n
+												Identificador do erro: {$debug_id}", "paypal-brasil-para-woocommerce"));
 		$exception->data = $exception_data;
 
 		throw $exception;
