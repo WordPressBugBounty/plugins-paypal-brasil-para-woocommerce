@@ -1,8 +1,14 @@
 <?php
 
+use function PHPUnit\Framework\isEmpty;
+
 // Ignore if access directly.
 if (!defined('ABSPATH')) {
 	exit;
+}
+
+if ( ! class_exists( 'WC_PAYPAL_LOGGER' ) ) {
+    require_once plugin_dir_path( __FILE__ ) . '../class-wc-paypal-logger.php';
 }
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
@@ -568,7 +574,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			}
 
 			// Get the payment from PayPal
-			$order_paypal_data = $this->api->get_payment($paypal_order_id);
+			$order_paypal_data = $this->api->get_payment($paypal_order_id,array(),'bcdc');
 
 			// Check if the payment id
 			if (empty($order_paypal_data['payer']['payer_id'])) {
@@ -602,7 +608,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			// execute the order here.
 			$sale = $this->execute_payment($order, $paypal_order_id);
 
-			$order_paypal_data = $this->api->get_payment($paypal_order_id);
+			$order_paypal_data = $this->api->get_payment($paypal_order_id,array(),'bcdc');
 
 			$installments_term = intval($order_paypal_data['credit_financing_offer']['term']);
 			$installments_monthly_value = $order_paypal_data['credit_financing_offer']['installment_details']['payment_due']['value'];
@@ -789,7 +795,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		if ($order_paypal_id) {
 			try {
 
-				$order_paypal_data = $this->api->get_payment($order_paypal_id);
+				$order_paypal_data = $this->api->get_payment($order_paypal_id,array(),'bcdc');
 
 				$capture_id = $order_paypal_data['purchase_units'][0]['payments']['captures'][0]['id'];
 
@@ -1002,44 +1008,50 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			// Set shipping only when isn't digital
 			if (!$only_digital_items) {
 
-				if (isset($shipping_method) && $shipping_method == 'local_pickup') {
+				if (isset($shipping_method) && strpos($shipping_method, 'local_pickup') === 0) {
+
+					$shipping_address = $this->get_payer_address($data);
 
 					$shipping = array(
 						'shipping' => array(
 							'type' => 'PICKUP_IN_STORE',
 							'name' => array(
 								'full_name' => $data['first_name'] . " " . $data['last_name'],
-							)
+							),
 						)
 					);
+					WC_PAYPAL_LOGGER::log("Validate addresss" . json_encode($shipping_address) . "\n Validação: " . json_encode($this->validate_address($shipping_address)), $this->id);
+					if ($this->validate_address($shipping_address)) {
+						$shipping['shipping']['address'] = $shipping_address;
+						$payment_data['payment_source']['paypal']['address'] = $shipping_address;
+					}
 
 					$payment_data['payment_source']['paypal']['experience_context']['shipping_preference'] = 'NO_SHIPPING';
 					$payment_data['purchase_units'][0] = array_merge($payment_data['purchase_units'][0], $shipping);
 
 				} else {
 
-
 					$shipping_address = $this->get_payer_address($data);
+					$shipping = array(
+						'shipping' => array(
+							'type' => 'SHIPPING',
+							'name' => array(
+								'full_name' => $data['first_name'] . " " . $data['last_name'],
+							),
+							//'address' => $shipping_address
+						)
+					);
 
+					//If address is invalid, the shipping is not send to create_order by is not permited when shipping reference is SET_PROVIDED_ADDRESS 
 					if ($this->validate_address($shipping_address)) {
-						$shipping = array(
-							'shipping' => array(
-								'type' => 'SHIPPING',
-								'name' => array(
-									'full_name' => $data['first_name'] . " " . $data['last_name'],
-								),
-								'address' => $shipping_address
-							)
-						);
 
+						$shipping['shipping']['address'] = $shipping_address;
 						$payment_data['payment_source']['paypal']['address'] = $shipping_address;
+						$payment_data['payment_source']['paypal']['experience_context']['shipping_preference'] = 'SET_PROVIDED_ADDRESS';
 
-						$payment_data['purchase_units'][0] = array_merge($payment_data['purchase_units'][0], $shipping);
 					}
 
-
-
-					$payment_data['payment_source']['paypal']['experience_context']['shipping_preference'] = 'SET_PROVIDED_ADDRESS';
+					$payment_data['purchase_units'][0] = array_merge($payment_data['purchase_units'][0], $shipping);
 
 				}
 
@@ -1047,9 +1059,12 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 		}
 
-		$payment_data['payment_source']['paypal'] = $this->get_payer_info($data);
-
-	
+		if ($payment_data['payment_source']['paypal']) {
+			$payment_data['payment_source']['paypal'] = array_merge($payment_data['payment_source']['paypal'], $this->get_payer_info($data));
+		} else {
+			$payment_data['payment_source']['paypal'] = array();
+			$payment_data['payment_source']['paypal'] = array_merge($payment_data['payment_source']['paypal'], $this->get_payer_info($data));
+		}
 
 		//Capture item on the cart;
 		$items_cart = $wc_cart->get_cart_contents();
@@ -1076,12 +1091,18 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 		try {
 
-			if(!$this->currency_is_allowed()){
-				throw new Exception(__('Payment not allowed in this currency. Contact store support.', "paypal-brasil-para-woocommerce"));;
+			if (!$this->currency_is_allowed()) {
+				throw new Exception(__('Payment not allowed in this currency. Contact store support.', "paypal-brasil-para-woocommerce"));
+				;
 			}
 
 			// Create the payment.
 			$result = $this->api->create_payment($payment_data, array(), 'bcdc');
+
+			if (!isset($result['payment_source']['paypal']['address']) || !isset($result['payer']['address'])) {
+				WC_PAYPAL_LOGGER::log("Order created without address!", $this->id, "warning", $result);
+			}
+
 			return $result;
 		} catch (PayPal_Brasil_API_Exception $ex) { // Catch any PayPal error.
 			$error_data = $ex->getData();
@@ -1092,7 +1113,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		}
 
 		$error_message = str_replace('"', '', $error_data['message']);
-		$debug_id   = str_replace('"', '', $error_data['debug_id']);
+		$debug_id = str_replace('"', '', $error_data['debug_id']);
 		$exception = new Exception(__("Ocorreu um erro, no CREATE_ORDER, \n
 												Mensagem original: {$error_message} \n
 												Identificador do erro: {$debug_id}", "paypal-brasil-para-woocommerce"));
@@ -1183,7 +1204,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			// Set shipping only when isn't digital
 			if (!$only_digital_items) {
 
-				if (isset($shipping_method) && $shipping_method == 'local_pickup') {
+				if (isset($shipping_method) && strpos($shipping_method, 'local_pickup') === 0) {
 
 					$shipping = array(
 						'shipping' => array(
@@ -1297,7 +1318,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		$address_line_1 = array();
 		// Add the address
 		if ($data['address']) {
-			//$address_line_1[] = $data['address'];
+			$address_line_1[] = $data['address'];
 		}
 		// Add the number
 		if ($data['number']) {
@@ -1330,10 +1351,10 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 	}
 
 	public function validate_address(array $data): bool{
-		$adressFields = ['address',	'number','neighborhood', 'address_2','state', 'city', 'postcode', 'country','address_line_1','address_line_2'];
+		$adressFields = ['address_line_1','address_line_2','admin_area_1', 'admin_area_2','postal_code', 'country_code'];
 		$isValid = true; 
 		foreach ($adressFields as $value) {
-			if (!isset($data[$value])) {
+			if (!isset($data[$value]) || empty($data[$value])) {
 				$isValid = false;
 			}
 		}

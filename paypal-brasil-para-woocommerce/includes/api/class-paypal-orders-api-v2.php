@@ -23,6 +23,7 @@ class PayPal_Brasil_Orders_api_V2
 		'ec' => 'WooCommerceBrazil_Ecom_EC',
 		'shortcut' => 'WooCommerceBrazil_Ecom_ECS',
 		'plus' => 'WooCommerceBR_Ecom_PPPlus',
+		'bcdc' => 'WooCommerceBrazil_Ecom_BCDC',
 		'default' => 'WooCommerceBrazil_Ecom_EC',
 	);
 
