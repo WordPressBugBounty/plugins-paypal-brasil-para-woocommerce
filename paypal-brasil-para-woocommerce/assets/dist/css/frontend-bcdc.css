@@ -9,25 +9,28 @@ div.payment_method_paypal-brasil-bcdc-gateway {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 200px;
   justify-content: center; }
+
+div#container-paypal-button {
+  padding-top: 2rem;
+  padding-bottom: 0.5em;
+  width: 100%; }
 
 #wc-bcdc-brasil-banner {
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
+  padding-top: 1.5em;
   align-items: center;
   align-content: stretch;
   width: 93%; }
 
 span#pay-with-text {
-  /* Pay with */
   font-family: 'Helvetica';
   font-style: normal;
   font-weight: 400;
   font-size: 20px;
   line-height: 18px;
-  /* or 100% */
   text-align: center;
   letter-spacing: -0.01em;
   margin-bottom: 6px;
@@ -39,7 +42,6 @@ span#pay-on-click-text {
   font-weight: 400;
   font-size: 12px;
   line-height: 18px;
-  /* or 150% */
   text-align: center;
   letter-spacing: -0.01em;
   margin-bottom: 10px;
@@ -64,15 +66,27 @@ span#bcdc-value-cart {
   font-weight: 700;
   font-size: 12px;
   line-height: 18px;
-  /* or 150% */
   letter-spacing: -0.01em;
   color: #2C2E2F; }
 
 #line {
   width: 100%;
-  /* largura da linha */
   border: 1px solid #DCE1E5;
   margin-bottom: 10px; }
+
+/*@media(min-width:1000px) {
+    div#paypal-button-bcdc{
+        width: 75%;
+    }
+
+    div.paypal-submit-button-bcdc{
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        
+    }
+    
+}*/
 
 
 /*# sourceMappingURL=frontend-bcdc.css.map*/

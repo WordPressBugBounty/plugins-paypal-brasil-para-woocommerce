@@ -66,8 +66,6 @@ class WC_PAYPAL_LOGGER
 					"body" => array($obj->filterData($extra))
 				];
 
-				$wc_logger->debug(json_encode($logData), $context);
-
 
 				$client->post("api/v2/logs", [
 					'headers' => [

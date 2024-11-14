@@ -52,7 +52,11 @@ try {
                 <img src="<?php echo esc_url( plugins_url( 'assets/images/bcdc-card-brands.png', PAYPAL_PAYMENTS_MAIN_FILE ) ); ?>" alt="">
                 <span id="bcdc-value-cart">Valor total: <span id="bcdc-total-cart-label"></span></span>
             </div>
+            <div id="container-paypal-button">
+                <div id="paypal-button-bcdc"></div>
+            </div>
         </div>
+
 
     </div>
 </div>
