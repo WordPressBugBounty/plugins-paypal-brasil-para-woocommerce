@@ -1151,8 +1151,16 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 			$data['purchase_units'][0] = array_merge($data['purchase_units'][0], $shipping);
 		}
 
-		// Make API request.
-		$response = $this->api->create_payment($data, array('PAYPAL-CLIENT-METADATA-ID' => $uuid), 'reference');
+		
+		
+		try{
+			// Make API request.
+			$response = $this->api->create_payment($data, array('PAYPAL-CLIENT-METADATA-ID' => $uuid), 'reference');
+			WC_PAYPAL_LOGGER::log("Order body", $this->id, "info", $response);
+		}catch(PayPal_Brasil_API_Exception $ex){
+			$data = $ex->getData();
+			WC_PAYPAL_LOGGER::log("Create order error.",$this->id,'error',$data);
+		}
 
 		// If has discount, add to order information.
 		if ($discount_value = floatval($installment['discount_amount']['value'])) {
@@ -1332,6 +1340,7 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 			}
 		} catch (PayPal_Brasil_API_Exception $ex) {
 			$data = $ex->getData();
+			WC_PAYPAL_LOGGER::log("Error on create order.", $this->id, "error", $data);
 
 			switch ($data['name']) {
 				// Repeat the execution
@@ -1430,9 +1439,10 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 				}
 			} catch (PayPal_Brasil_API_Exception $ex) { // Catch any PayPal error.
 				$data = $ex->getData();
-
+				WC_PAYPAL_LOGGER::log("Error on refund", $this->id, "info", $data);
 				return new WP_Error('error', $data['message']);
 			} catch (Exception $ex) {
+				WC_PAYPAL_LOGGER::log("Error on refund", $this->id, "info", $ex);
 				return new WP_Error(
 					'error',
 					__('There was an error trying to make a refund.', "paypal-brasil-para-woocommerce")
@@ -1702,9 +1712,15 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 			$data['purchase_units'][0] = array_merge($data['purchase_units'][0], $shipping);
 		}
 
-		// Create the payment in API.
-		$create_payment = $this->api->create_payment($data, array(), 'ec');
-
+		try {
+			// Create the payment in API.
+			$create_payment = $this->api->create_payment($data, array(), 'ec');
+			WC_PAYPAL_LOGGER::log("Order body", $this->id, "info", $create_payment);
+		}catch(PayPal_Brasil_API_Exception $ex){
+			$data = $ex->getData();
+			WC_PAYPAL_LOGGER::log("Create order error.",$this->id,'error',$data);
+		}
+		
 		// Get the response links.
 		$links = $this->api->parse_links($create_payment['links']);
 

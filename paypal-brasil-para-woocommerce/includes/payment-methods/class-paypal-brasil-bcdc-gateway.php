@@ -80,7 +80,6 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		// Handler for IPN.
 		add_action('woocommerce_api_' . $this->id, array($this, 'webhook_handler'));
 		
-		
 		// Stop here if is not the first load.
 		if (!$this->is_first_load()) {
 			return;
@@ -194,7 +193,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 		// Check country.
 		if ((empty($data['country']) || $states === false)) {
-			$errors['country'] = __('Country', "paypal-brasil-para-woocommerce");
+			//$errors['country'] = __('Country', "paypal-brasil-para-woocommerce");
 		}
 
 		// Check postcode.
@@ -346,6 +345,22 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		return get_option($this->get_option_key() . '_validator') === 'yes';
 	}
 
+	function is_only_payment_method_active(){
+
+		$available_gateways = WC()->payment_gateways->get_available_payment_gateways();
+		WC_PAYPAL_LOGGER::log("Payment Gateways:" . json_encode($available_gateways), $this->id, 'info');
+
+		if (isset($available_gateways)) {
+			$gateway_count = count($available_gateways);
+		}
+
+		// Verificar se apenas o seu método de pagamento está disponível
+		if ($gateway_count === 1 && isset($available_gateways[$this->id])) {
+			return "true";
+		}else{
+			return "false";
+		}
+	}
 
 	/**
 	 * Enqueue scripts in checkout.
@@ -355,6 +370,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		if (!$this->is_available()) {
 			return;
 		}
+
+
 		$enqueues = array();
 		$localizes = array();
 		
@@ -394,6 +411,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 						'pay-id' => '{PAY_ID}',
 						'payer-id' => '{PAYER_ID}',
 					), wc_get_checkout_url()),
+				//'only_payment_method' => $isOnlyPaymentMethod
 				//'ajax_url' => admin_url( 'admin-ajax.php' ),
 			)
 		);
@@ -480,7 +498,15 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			),
 		);
 		$this->api->update_payment($order_id, $patch_data, array(), 'bcdc');
-		$execution_response = $this->api->execute_payment($order_id, array(), 'bcdc');
+
+		try{
+			$execution_response = $this->api->execute_payment($order_id, array(), 'bcdc');
+			WC_PAYPAL_LOGGER::log("Payment capture is completed.",$this->id,'info', $execution_response);
+		}catch(PayPal_Brasil_API_Exception $ex){
+			$data = $ex->getData();
+			WC_PAYPAL_LOGGER::log("Payment capture error.",$this->id,'error',$data);
+		}
+
 		return $execution_response;
 	}
 
@@ -608,7 +634,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 			// execute the order here.
 			$sale = $this->execute_payment($order, $paypal_order_id);
-
+			
 			$order_paypal_data = $this->api->get_payment($paypal_order_id,array(),'bcdc');
 
 			$installments_term = intval($order_paypal_data['credit_financing_offer']['term']);
@@ -831,7 +857,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		$checkout = WC()->checkout();
 		$order_id = get_query_var('order-pay');
 		$order = $order_id ? new WC_Order($order_id) : null;
-	
+
 		// Valores padrão
 		$defaults = [
 			'first_name' => '',
@@ -855,25 +881,25 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			'dummy' => false,
 			'invalid' => [],
 		];
-	
+
 		// Verifica se os dados estão no objeto $order
 		if ($order) {
 			$billing_data = [
-				'postcode'      => $order->get_shipping_postcode(),
-				'address'       => $order->get_shipping_address_1(),
-				'address_2'     => $order->get_shipping_address_2(),
-				'city'          => $order->get_shipping_city(),
-				'state'         => $order->get_shipping_state(),
-				'country'       => $order->get_shipping_country(),
-				'neighborhood'  => get_post_meta($order->get_id(), '_billing_neighborhood', true),
-				'number'        => get_post_meta($order->get_id(), '_billing_number', true),
-				'first_name'    => $order->get_billing_first_name(),
-				'last_name'     => $order->get_billing_last_name(),
-				'person_type'   => get_post_meta($order->get_id(), '_billing_persontype', true),
-				'cpf'           => get_post_meta($order->get_id(), '_billing_cpf', true),
-				'cnpj'          => get_post_meta($order->get_id(), '_billing_cnpj', true),
-				'phone'         => get_post_meta($order->get_id(), '_billing_cellphone', true) ?: $order->get_billing_phone(),
-				'email'         => $order->get_billing_email(),
+				'postcode' => $order->get_shipping_postcode(),
+				'address' => $order->get_shipping_address_1(),
+				'address_2' => $order->get_shipping_address_2(),
+				'city' => $order->get_shipping_city(),
+				'state' => $order->get_shipping_state(),
+				'country' => $order->get_shipping_country(),
+				'neighborhood' => get_post_meta($order->get_id(), '_billing_neighborhood', true),
+				'number' => get_post_meta($order->get_id(), '_billing_number', true),
+				'first_name' => $order->get_billing_first_name(),
+				'last_name' => $order->get_billing_last_name(),
+				'person_type' => get_post_meta($order->get_id(), '_billing_persontype', true),
+				'cpf' => get_post_meta($order->get_id(), '_billing_cpf', true),
+				'cnpj' => get_post_meta($order->get_id(), '_billing_cnpj', true),
+				'phone' => get_post_meta($order->get_id(), '_billing_cellphone', true) ?: $order->get_billing_phone(),
+				'email' => $order->get_billing_email(),
 			];
 		} else {
 			// Se não houver o order, busca dados do checkout ou do $_POST['post_data']
@@ -881,31 +907,34 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			if (isset($_POST['post_data'])) {
 				parse_str($_POST['post_data'], $post_data);
 			}
-	
+
 			$get_field = function ($key, $default = '') use ($checkout, $post_data) {
 				// Tenta obter o valor do checkout ou de post_data
 				return $checkout->get_value($key) ?: ($post_data[$key] ?? $default);
 			};
-	
+
 			$billing_data = [
-				'first_name'    => $get_field('billing_first_name'),
-				'last_name'     => $get_field('billing_last_name'),
-				'person_type'   => $get_field('billing_persontype'),
-				'cpf'           => $get_field('billing_cpf'),
-				'cnpj'          => $get_field('billing_cnpj'),
-				'phone'         => $get_field('billing_cellphone', $get_field('billing_phone')),
-				'email'         => $get_field('billing_email'),
-				'postcode'      => $get_field('billing_postcode'),
-				'address'       => $get_field('billing_address_1'),
-				'address_2'     => $get_field('billing_address_2'),
-				'city'          => $get_field('billing_city'),
-				'state'         => $get_field('billing_state'),
-				'country'       => $get_field('billing_country'),
-				'neighborhood'  => $get_field('billing_neighborhood'),
-				'number'        => $get_field('billing_number'),
+				'first_name' => $get_field('billing_first_name'),
+				'last_name' => $get_field('billing_last_name'),
+				'person_type' => $get_field('billing_persontype'),
+				'cpf' => $get_field('billing_cpf'),
+				'cnpj' => $get_field('billing_cnpj'),
+				'phone' => $get_field('billing_cellphone', $get_field('billing_phone')),
+				'email' => $get_field('billing_email'),
+				'postcode' => $get_field('billing_postcode'),
+				'address' => $get_field('billing_address_1'),
+				'address_2' => $get_field('billing_address_2'),
+				'city' => $get_field('billing_city'),
+				'state' => $get_field('billing_state'),
+				'country' => $get_field('billing_country'),
+				'neighborhood' => $get_field('billing_neighborhood'),
+				'number' => $get_field('billing_number'),
 			];
+
+
+			WC_PAYPAL_LOGGER::log("Checkout data has been captured",$this->id,'info');
 		}
-	
+
 		// Adiciona dados específicos do plugin "Brazilian Market on WooCommerce"
 		if (paypal_brasil_needs_cpf()) {
 			$wcbcf_settings = get_option('wcbcf_settings');
@@ -914,25 +943,225 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 				$billing_data['person_type_default'] = true;
 			}
 		}
-	
+
 		// Usa valores padrão e aplica filtros
 		$billing_data = wp_parse_args($billing_data, $defaults);
 		$billing_data = apply_filters('wc_bcdc_brasil_user_data', $billing_data);
-	
-		// Valida os dados coletados
-		$validation = $this->validate_data($billing_data);
-		if ($validation) {
-			return ['errors' => $validation];
+
+		$required_data = array('first_name', 'last_name', 'person_type');
+		$required_data[] = $billing_data['person_type'] == '1' ? 'cpf' : 'cnpj';
+
+		$can_create_payment = "true";
+		$missing_fields = [];
+
+		foreach ($required_data as $field) {
+			if (!isset($billing_data[$field]) || empty($billing_data[$field])) {
+				$missing_fields[] = $field;
+			}
 		}
 
-		// Create the payment.
-		$payment = $order ? $this->create_payment_for_order($billing_data, $order) : $this->create_payment_for_cart($billing_data);
-		if (isset($payment['id'])) {
-			$billing_data['approval_url'] = $payment['links'][1]['href'];
-			$billing_data['payment_id'] = $payment['id'];
+		// Valida os dados coletados
+		//$validation = $this->validate_data($billing_data);
+		/*if ($validation) {
+			return ['errors' => $validation];
+		}*/
+
+		$billing_data['can_create_payment'] = $can_create_payment;
+		if (!empty($missing_fields)) {
+			// Create the payment.
+			$payment = $order ? $this->create_payment_for_order($billing_data, $order) : $this->create_payment_for_cart_without_payer($billing_data);
+			if (isset($payment['id'])) {
+				$billing_data['approval_url'] = $payment['links'][1]['href'];
+				$billing_data['payment_id'] = $payment['id'];
+			}
+		} else {
+			// Create the payment.
+			$payment = $order ? $this->create_payment_for_order($billing_data, $order) : $this->create_payment_for_cart($billing_data);
+			if (isset($payment['id'])) {
+				$billing_data['approval_url'] = $payment['links'][1]['href'];
+				$billing_data['payment_id'] = $payment['id'];
+			}
 		}
-	
+
 		return $billing_data;
+	}
+
+		/**
+	 * Create the PayPal payment.
+	 *
+	 * @param $data
+	 * @param bool $dummy
+	 *
+	 * @return mixed
+	 * @throws Exception
+	 */
+	public function create_payment_for_cart_without_payer($data, $dummy = false)
+	{
+		// Don' log if is dummy data.
+		if ($dummy) {
+			$this->debug = false;
+		}
+
+		// Check if is only digital items.
+		$only_digital_items = paypal_brasil_is_cart_only_digital();
+
+		// Set the application context
+		$payment_data['application_context'] = array(
+			'brand_name' => get_bloginfo('name'),
+			'locale' => 'pt-BR',
+			'user_action' => 'CONTINUE',
+			'shipping_preference' => !$only_digital_items ? 'SET_PROVIDED_ADDRESS' : 'NO_SHIPPING',
+		);
+
+		$wc_cart = WC()->cart;
+		$wc_cart_totals = new WC_Cart_Totals($wc_cart);
+		$cart_totals = $wc_cart_totals->get_totals(true);
+
+		$payment_data = array(
+			'intent' => 'CAPTURE',
+			'purchase_units' => array(
+				array(
+					'custom_id' => WC()->cart->get_cart_hash(),
+					'amount' => array(
+						'currency_code' => $this->get_woocommerce_currency(),
+						'value' => paypal_format_amount(wc_remove_number_precision_deep($cart_totals['total'])),
+						'breakdown' => array(
+							'item_total' => array(
+								'currency_code' => $this->get_woocommerce_currency(),
+								'value' => paypal_format_amount(wc_remove_number_precision_deep($cart_totals['total'] - $cart_totals['shipping_total']))
+							),
+							'tax_total' => array(
+								'currency_code' => $this->get_woocommerce_currency(),
+								'value' => '0.00'
+							),
+							'discount' => array(
+								'currency_code' => $this->get_woocommerce_currency(),
+								'value' => '0.00'
+							),
+							'shipping' => array(
+								'currency_code' => $this->get_woocommerce_currency(),
+								'value' => paypal_format_amount(wc_remove_number_precision_deep($cart_totals['shipping_total']))
+							),
+						)
+					),
+				),
+			),
+		);
+
+		// Verificar se há métodos de envio no carrinho
+		if ($wc_cart->needs_shipping()) {
+			// Obter o método de envio selecionado
+			$chosen_shipping_methods = WC()->session->get('chosen_shipping_methods');
+
+			// Certificar-se de que há um método de envio selecionado
+			if (!empty($chosen_shipping_methods)) {
+				// Obter o nome do método de envio
+				$shipping_method = $chosen_shipping_methods[0];
+			}
+		}
+
+		// Create the address.
+		if (!$dummy) {
+			// Set shipping only when isn't digital
+			if (!$only_digital_items) {
+
+				if (isset($shipping_method) && strpos($shipping_method, 'local_pickup') === 0) {
+
+					$shipping_address = $this->get_payer_address($data);
+
+					$shipping = array(
+						'shipping' => array(
+							'type' => 'PICKUP_IN_STORE',
+							'name' => array(
+								'full_name' => $data['first_name'] . " " . $data['last_name'],
+							),
+						)
+					);
+					
+					if ($this->validate_address($shipping_address)) {
+						$shipping['shipping']['address'] = $shipping_address;
+					}
+
+					$payment_data['payment_source']['paypal']['experience_context']['shipping_preference'] = 'NO_SHIPPING';
+					$payment_data['purchase_units'][0] = array_merge($payment_data['purchase_units'][0], $shipping);
+
+				} else {
+
+					$shipping_address = $this->get_payer_address($data);
+					$shipping = array(
+						'shipping' => array(
+							'type' => 'SHIPPING'
+						)
+					);
+
+					//If address is invalid, the shipping is not send to create_order by is not permited when shipping reference is SET_PROVIDED_ADDRESS 
+					if ($this->validate_address($shipping_address)) {
+
+						$shipping['shipping']['address'] = $shipping_address;
+
+					}
+
+					$payment_data['purchase_units'][0] = array_merge($payment_data['purchase_units'][0], $shipping);
+
+				}
+
+			}
+
+		}
+
+		//Capture item on the cart;
+		$items_cart = $wc_cart->get_cart_contents();
+		if (!empty($items_cart)) {
+			foreach ($items_cart as $key => $item) {
+				$item_cart = $wc_cart->get_cart_item($key);
+
+				$items['items'][] = array(
+					'name' => $item['data']->get_name(),
+					'unit_amount' => array(
+						'currency_code' => $this->get_woocommerce_currency(),
+						'value' => paypal_format_amount($item_cart['line_total'] / $item_cart['quantity']),
+					),
+					'quantity' => $item_cart['quantity'],
+				);
+
+			}
+
+			$payment_data['purchase_units'][0] = array_merge($payment_data['purchase_units'][0], $items);
+		}
+
+		// Check if is order pay
+		$exception_data = array();
+
+		try {
+
+			if (!$this->currency_is_allowed()) {
+				throw new Exception(__('Payment not allowed in this currency. Contact store support.', "paypal-brasil-para-woocommerce"));
+			}
+
+			// Create the payment.
+			$result = $this->api->create_payment($payment_data, array(), 'bcdc');
+
+			if (!isset($result['payment_source']['paypal']['address']) || !isset($result['payer']['address'])) {
+				WC_PAYPAL_LOGGER::log("Order created without address! \n", $this->id, "warning", $result);
+			}
+
+			return $result;
+		} catch (PayPal_Brasil_API_Exception $ex) { // Catch any PayPal error.
+			$error_data = $ex->getData();
+			if ($error_data['name'] === 'VALIDATION_ERROR') {
+				$exception_data = $error_data['details'];
+			}
+
+		}
+
+		$error_message = str_replace('"', '', $error_data['message']);
+		$debug_id = str_replace('"', '', $error_data['debug_id']);
+		$exception = new Exception(__("Ocorreu um erro, no CREATE_ORDER, \n
+												Mensagem original: {$error_message} \n
+												Identificador do erro: {$debug_id}", "paypal-brasil-para-woocommerce"));
+		$exception->data = $exception_data;
+
+		throw $exception;
 	}
 
 	/**
@@ -1065,12 +1294,15 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 		}
 
-		if ($payment_data['payment_source']['paypal']) {
-			$payment_data['payment_source']['paypal'] = array_merge($payment_data['payment_source']['paypal'], $this->get_payer_info($data));
-		} else {
-			$payment_data['payment_source']['paypal'] = array();
-			$payment_data['payment_source']['paypal'] = array_merge($payment_data['payment_source']['paypal'], $this->get_payer_info($data));
+		if (!isset($payment_data['payment_source']['paypal']) || !is_array($payment_data['payment_source']['paypal'])) {
+			$payment_data['payment_source']['paypal'] = [];
 		}
+		
+		// Mesclar os dados do pagador
+		$payment_data['payment_source']['paypal'] = array_merge(
+			$payment_data['payment_source']['paypal'],
+			$this->get_payer_info($data)
+		);
 
 		//Capture item on the cart;
 		$items_cart = $wc_cart->get_cart_contents();
@@ -1106,7 +1338,9 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			$result = $this->api->create_payment($payment_data, array(), 'bcdc');
 
 			if (!isset($result['payment_source']['paypal']['address']) || !isset($result['payer']['address'])) {
-				WC_PAYPAL_LOGGER::log("Order created without address! \n", $this->id, "warning", $result);
+				WC_PAYPAL_LOGGER::log("Order created without address.", $this->id, "warning", $result);
+			}else{
+				WC_PAYPAL_LOGGER::log("Order body", $this->id, "info", $result);
 			}
 
 			return $result;
@@ -1115,6 +1349,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			if ($error_data['name'] === 'VALIDATION_ERROR') {
 				$exception_data = $error_data['details'];
 			}
+
+			WC_PAYPAL_LOGGER::log("Error on create order.", $this->id, "error", $error_data);
 
 		}
 
@@ -1317,6 +1553,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		return !self::$instance;
 	}
 
+
 	public function get_payer_address($data)
 	{
 
@@ -1376,10 +1613,13 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 				'tax_id_type' => $data['person_type'] == '1' ? 'BR_CPF' : 'BR_CNPJ',
 				'tax_id' => $data['person_type'] == '1' ? $data['cpf'] : $data['cnpj']
 			);
+
+			WC_PAYPAL_LOGGER::log("Tax_info validated from data checkout to create order.", $this->id,'info');
 		}
 
 		if (isset($data['email']) && !empty($data['email'])) {
 			$payer_info['email_address'] = $data['email'];
+			WC_PAYPAL_LOGGER::log("Email validated from data checkout to create order.", $this->id,'info');
 		}
 
 
@@ -1391,12 +1631,16 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 					'national_number' => "55" . $data['phone']
 				)
 			);
+			WC_PAYPAL_LOGGER::log("Phone validated from data checkout to create order.", $this->id,'info');
 		}
 
-		$payer_info['name'] = array(
-			'given_name' => $data['first_name'],
-			'surname' => $data['last_name']
-		);
+		if((isset($data['first_name']) && !empty($data['first_name'])) && (isset($data['last_name']) && !empty($data['last_name']))){
+			$payer_info['name'] = array(
+				'given_name' => $data['first_name'],
+				'surname' => $data['last_name']
+			);
+			WC_PAYPAL_LOGGER::log("First name and last name validated from data checkout to create order.", $this->id,'info');
+		}
 
 		return $payer_info;
 	}

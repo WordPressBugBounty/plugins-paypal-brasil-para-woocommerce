@@ -193,8 +193,14 @@ class PayPal_Brasil_API_Checkout_Handler extends PayPal_Brasil_API_Handler {
 				),
 			);
 
-			// Create the payment in API.
-			$create_payment = $gateway->api->create_payment( $data, array(), 'ec' );
+			try {
+				// Create the payment in API.
+				$create_payment = $gateway->api->create_payment( $data, array(), 'ec' );
+				WC_PAYPAL_LOGGER::log("Order created - order body", "paypal-brasil-spb-gateway", "info", $create_payment);
+			}catch(PayPal_Brasil_API_Exception $ex){
+				$data = $ex->getData();
+				WC_PAYPAL_LOGGER::log("Create order error.",$this->id,'error',$data);
+			}
 
 			// Get the response links.
 			$links = $gateway->api->parse_links( $create_payment['links'] );
