@@ -26,25 +26,23 @@ class WC_PAYPAL_LOGGER
 		}
 
 		$options = get_option("woocommerce_{$gateway_id}_settings");
-
-		if (empty($options) || (isset($options['debug']) && 'yes' !== $options['debug'])) {
-			return;
-		}
-
+		
 		$wc_logger = wc_get_logger();
 		$context = array('source' => $gateway_id);
-
+		
 		$log_message = PHP_EOL . '==== Paypal Brasil para woocommerce Version: ' . PAYPAL_PAYMENTS_VERSION . ' ====' . PHP_EOL;
 		$log_message .= PHP_EOL;
 		$log_message .= '=== Start Log ===' . PHP_EOL;
 		$log_message .= $message . PHP_EOL;
 		$log_message .= '=== End Log ===' . PHP_EOL;
 		$log_message .= PHP_EOL;
+		
+		if (!empty($options) && isset($options['debug']) && $options['debug'] === 'yes') {
+			$wc_logger->debug($log_message, $context);
+		}
 
-		$wc_logger->debug($log_message, $context);
 		// Enviar para o Datadog somente se for um log de erro ou critico, ou contiver palavras específicas
 		$datadog_api_key = self::getDatadogApiKey();
-		if ($datadog_api_key && ($level === 'warning' || $level === 'error' || strpos($message, 'ALERT') !== false)) {
 
 			try {
 				$client = new Client([
@@ -79,8 +77,6 @@ class WC_PAYPAL_LOGGER
 				return;
 			}
 
-
-		}
 	}
 
 

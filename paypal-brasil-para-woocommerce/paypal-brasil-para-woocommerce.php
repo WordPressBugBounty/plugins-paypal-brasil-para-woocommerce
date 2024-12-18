@@ -3,7 +3,7 @@
 /**
  * Plugin Name: PayPal Brasil para WooCommerce
  * Description: Adicione facilmente opções de pagamento do PayPal à sua loja do WooCommerce.
- * Version: 1.5.9
+ * Version: 1.6.0
  * Author: PayPal
  * Author URI: https://paypal.com.br
  * Requires at least: 4.4
@@ -29,7 +29,7 @@ function paypal_brasil_init() {
 
 	// Define files.
 	define( 'PAYPAL_PAYMENTS_MAIN_FILE', __FILE__ );
-	define( 'PAYPAL_PAYMENTS_VERSION', '1.5.9' );
+	define( 'PAYPAL_PAYMENTS_VERSION', '1.6.0' );
     define('WC_PAYPAL_PLUGIN_SLUG','paypal-brasil-para-woocommerce');
 
 	// Init plugin.
