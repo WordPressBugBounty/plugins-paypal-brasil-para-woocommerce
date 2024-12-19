@@ -130,8 +130,21 @@ class PayPal_Brasil_API_Shortcut_Cart_Handler extends PayPal_Brasil_API_Handler 
 				),
 			);
 
-			// Create the payment in API.
-			$create_payment = $gateway->api->create_payment( $data, array(), 'shortcut' );
+			WC_PAYPAL_LOGGER::log("Payload create order on SPB from shortcut cart", $gateway->id, "info", $data);
+
+			try {
+				// Create the payment in API.
+				$create_payment = $gateway->api->create_payment($data, array(), 'shortcut');
+				WC_PAYPAL_LOGGER::log("Create order on SPB from shortcut cart", $gateway->id, "info", $create_payment);
+			} catch (PayPal_Brasil_API_Exception $ex) { // Catch any PayPal error.
+				$error_data = $ex->getData();
+				if ($error_data['name'] === 'VALIDATION_ERROR') {
+					$exception_data = $error_data['details'];
+				}
+
+				WC_PAYPAL_LOGGER::log("Error to create order on SPB from cart shortcut", $gateway->id, "error", $error_data);
+			}
+
 
 			// Get the response links.
 			$links = $gateway->api->parse_links( $create_payment['links'] );

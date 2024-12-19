@@ -24,7 +24,7 @@ abstract class PayPal_Brasil_Gateway extends WC_Payment_Gateway {
 	public $partner_attribution_id;
 
 	/**
-	 * @var PayPal_Brasil_API
+	 * @var PayPal_Brasil_Orders_api_V2
 	 */
 	public $api;
 

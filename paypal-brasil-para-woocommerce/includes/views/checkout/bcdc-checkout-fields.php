@@ -45,13 +45,7 @@ try {
 
     <div id="wc-bcdc-brasil-banner-wrapper">
         <div id="wc-bcdc-brasil-banner" style="width:80%;">
-            <span id="pay-with-text" class="wc-bcdc-paypal-text">Finalize o pagamento</span>
-            <span id="pay-on-click-text" class="wc-bcdc-paypal-text">Clique no botão abaixo, para preencher os dados do seu cartão e finalize o pagamento.</span>
-            <div id="line"></div>
-            <div id="card-brands-value">
-                <img src="<?php echo esc_url( plugins_url( 'assets/images/bcdc-card-brands.png', PAYPAL_PAYMENTS_MAIN_FILE ) ); ?>" alt="">
-                <span id="bcdc-value-cart">Valor total: <span id="bcdc-total-cart-label"></span></span>
-            </div>
+           
             <div id="container-paypal-button">
                 <div id="paypal-button-bcdc"></div>
             </div>

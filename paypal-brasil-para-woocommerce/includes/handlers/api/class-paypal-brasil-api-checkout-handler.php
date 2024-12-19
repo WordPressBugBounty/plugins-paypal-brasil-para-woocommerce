@@ -193,13 +193,19 @@ class PayPal_Brasil_API_Checkout_Handler extends PayPal_Brasil_API_Handler {
 				),
 			);
 
+			WC_PAYPAL_LOGGER::log("Payload create order on SPB from checkout", $gateway->id, "info", $data);
+
 			try {
 				// Create the payment in API.
-				$create_payment = $gateway->api->create_payment( $data, array(), 'ec' );
-				WC_PAYPAL_LOGGER::log("Order created - order body", "paypal-brasil-spb-gateway", "info", $create_payment);
-			}catch(PayPal_Brasil_API_Exception $ex){
-				$data = $ex->getData();
-				WC_PAYPAL_LOGGER::log("Create order error.",$this->id,'error',$data);
+				$create_payment = $gateway->api->create_payment($data, array(), 'ec');
+				WC_PAYPAL_LOGGER::log("Create order on SPB from checkout", $gateway->id, "info", $create_payment);
+			} catch (PayPal_Brasil_API_Exception $ex) { // Catch any PayPal error.
+				$error_data = $ex->getData();
+				if ($error_data['name'] === 'VALIDATION_ERROR') {
+					$exception_data = $error_data['details'];
+				}
+
+				WC_PAYPAL_LOGGER::log("Error on create order on SPB from checkout", $gateway->id, "error", $error_data);
 			}
 
 			// Get the response links.

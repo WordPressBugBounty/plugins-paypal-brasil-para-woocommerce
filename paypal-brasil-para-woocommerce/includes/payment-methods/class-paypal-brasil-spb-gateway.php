@@ -968,9 +968,20 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 		$session = WC()->session->get('paypal_brasil_spb_shortcut_data');
 		$payer_id = isset($_POST['paypal-brasil-shortcut-payer-id']) ? sanitize_text_field($_POST['paypal-brasil-shortcut-payer-id']) : '';
 
-		// Execute API requests.
+		try {
+					// Execute API requests.
 		$this->api->update_payment($session['pay_id'], $data, array(), 'shortcut');
 		$response = $this->api->execute_payment($session['pay_id'], array(), 'shortcut');
+		} catch (PayPal_Brasil_API_Exception $ex) { // Catch any PayPal error.
+			$error_data = $ex->getData();
+			if ($error_data['name'] === 'VALIDATION_ERROR') {
+				$exception_data = $error_data['details'];
+			}
+
+			WC_PAYPAL_LOGGER::log("Error to create order on spb.", $this->id, "error", $error_data);
+
+		}
+
 
 		$order_id = $order->get_id();
 
@@ -1034,6 +1045,7 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 		return array(
 			'result' => 'success',
 			'redirect' => $this->get_return_url($order),
+			'order_body' => $response
 		);
 	}
 
@@ -1156,10 +1168,14 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 		try{
 			// Make API request.
 			$response = $this->api->create_payment($data, array('PAYPAL-CLIENT-METADATA-ID' => $uuid), 'reference');
-			WC_PAYPAL_LOGGER::log("Order body", $this->id, "info", $response);
-		}catch(PayPal_Brasil_API_Exception $ex){
-			$data = $ex->getData();
-			WC_PAYPAL_LOGGER::log("Create order error.",$this->id,'error',$data);
+		} catch (PayPal_Brasil_API_Exception $ex) { // Catch any PayPal error.
+			$error_data = $ex->getData();
+			if ($error_data['name'] === 'VALIDATION_ERROR') {
+				$exception_data = $error_data['details'];
+			}
+
+			WC_PAYPAL_LOGGER::log("Error to create order on spb.", $this->id, "error", $error_data);
+
 		}
 
 		// If has discount, add to order information.
@@ -1238,6 +1254,7 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 		return array(
 			'result' => 'success',
 			'redirect' => $this->get_return_url($order),
+			'order_body' => $response
 		);
 	}
 
@@ -1261,9 +1278,20 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 			),
 		);
 
-		// Execute API requests.
-		$this->api->update_payment($spb_pay_id, $data, array(), 'ec');
-		$response = $this->api->execute_payment($spb_pay_id, array(), 'ec');
+		try {
+			// Execute API requests.
+			$this->api->update_payment($spb_pay_id, $data, array(), 'ec');
+			$response = $this->api->execute_payment($spb_pay_id, array(), 'ec');
+		} catch (PayPal_Brasil_API_Exception $ex) { // Catch any PayPal error.
+			$error_data = $ex->getData();
+			if ($error_data['name'] === 'VALIDATION_ERROR') {
+				$exception_data = $error_data['details'];
+			}
+
+			WC_PAYPAL_LOGGER::log("Error to create order on spb.", $this->id, "error", $error_data);
+
+		}
+
 
 		// Process the order.
 		switch ($response['purchase_units'][0]['payments']['captures'][0]['status']) {
@@ -1307,6 +1335,7 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 		return array(
 			'result' => 'success',
 			'redirect' => $this->get_return_url($order),
+			'order_body' => $response
 		);
 	}
 
@@ -1323,21 +1352,26 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 		$order = wc_get_order($order_id);
 
 		try {
-			if ($this->is_processing_shortcut()) {
-				return $this->process_payment_shortcut($order);
-			} elseif ($this->is_processing_reference_transaction()) {
-				return $this->process_payment_reference_transaction($order);
-			} elseif ($this->is_processing_spb()) {
-				return $this->process_payment_spb($order);
-			} else {
-				wc_add_notice(
-					__(
-						'The payment method was not correctly detected. Please try again.',
-						"paypal-brasil-para-woocommerce"
-					),
-					'error'
-				);
+			// Mapeamento dos métodos de processamento
+			$processing_methods = [
+				'is_processing_shortcut' => 'process_payment_shortcut',
+				'is_processing_reference_transaction' => 'process_payment_reference_transaction',
+				'is_processing_spb' => 'process_payment_spb',
+			];
+
+			foreach ($processing_methods as $check_method => $process_method) {
+				if (method_exists($this, $check_method) && $this->$check_method()) {
+					$result = $this->$process_method($order);
+					WC_PAYPAL_LOGGER::log("Capture order on SPB", $this->id, "info", $result['order_body']);
+					return $result;
+				}
 			}
+
+			// Caso nenhum método seja detectado
+			wc_add_notice(
+				__('The payment method was not correctly detected. Please try again.', "paypal-brasil-para-woocommerce"),
+				'error'
+			);
 		} catch (PayPal_Brasil_API_Exception $ex) {
 			$data = $ex->getData();
 			WC_PAYPAL_LOGGER::log("Error on create order.", $this->id, "error", $data);
@@ -1439,10 +1473,10 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 				}
 			} catch (PayPal_Brasil_API_Exception $ex) { // Catch any PayPal error.
 				$data = $ex->getData();
-				WC_PAYPAL_LOGGER::log("Error on refund", $this->id, "info", $data);
+				WC_PAYPAL_LOGGER::log("Error on refund from SPB", $this->id, "error", $data);
 				return new WP_Error('error', $data['message']);
 			} catch (Exception $ex) {
-				WC_PAYPAL_LOGGER::log("Error on refund", $this->id, "info", $ex);
+				WC_PAYPAL_LOGGER::log("Error on refund SPB", $this->id, "error", $ex);
 				return new WP_Error(
 					'error',
 					__('There was an error trying to make a refund.', "paypal-brasil-para-woocommerce")
