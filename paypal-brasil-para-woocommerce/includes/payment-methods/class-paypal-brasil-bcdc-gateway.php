@@ -416,6 +416,20 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			)
 		);
 
+		$localizes[] = array(
+			'paypal-brasil-shared',
+			'paypal_brasil_settings',
+			array(
+				'paypal_brasil_handler_url' => add_query_arg(
+					array(
+						'wc-api' => 'paypal_brasil_handler',
+						'action' => '{ACTION}'
+					),
+					home_url() . '/'
+				)
+			)
+		);
+
 		if (is_checkout() && !get_query_var('order-received')) {
 			
 			$enqueues[] = array(

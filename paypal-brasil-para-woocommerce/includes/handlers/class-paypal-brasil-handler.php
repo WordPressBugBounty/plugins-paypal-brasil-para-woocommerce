@@ -35,6 +35,7 @@ class PayPal_Brasil_Handler {
 		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-bcdc-notification.php';
 		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-bcdc-activate.php';
 		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-ppp-activate.php';
+		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-logger-handler.php';
 	}
 
 	/**

@@ -19,7 +19,7 @@ class WC_PAYPAL_LOGGER
 	 *
 	 * @param string $message Log message.
 	 */
-	public static function log($message, $gateway_id, string $level = 'info', array $extra = array())
+	public static function log($message, $gateway_id, string $level = 'info', array $extra = array(), array $tags = array())
 	{
 		if (!class_exists('WC_Logger')) {
 			return;
@@ -63,6 +63,14 @@ class WC_PAYPAL_LOGGER
 					"version" => PAYPAL_PAYMENTS_VERSION,
 					"body" => array($obj->filterData($extra))
 				];
+
+				if(isset($tags)){
+					foreach ($tags as $tag) {
+						$logData['ddtags'] = $logData['ddtags'] .',' . $tag;
+					}
+				}
+
+				$log = $logData;
 
 
 				$client->post("api/v2/logs", [
