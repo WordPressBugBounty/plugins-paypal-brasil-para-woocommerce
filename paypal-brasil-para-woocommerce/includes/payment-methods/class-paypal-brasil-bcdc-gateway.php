@@ -29,6 +29,10 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 	private static $instance;
 	private static $uuid;
+	private string $invoice_id_prefix;
+	private string $title_complement;
+
+
 	/**
 	 * PayPal_Brasil_Plus constructor.
 	 */
@@ -411,15 +415,6 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 						'pay-id' => '{PAY_ID}',
 						'payer-id' => '{PAYER_ID}',
 					), wc_get_checkout_url()),
-				//'only_payment_method' => $isOnlyPaymentMethod
-				//'ajax_url' => admin_url( 'admin-ajax.php' ),
-			)
-		);
-
-		$localizes[] = array(
-			'paypal-brasil-shared',
-			'paypal_brasil_settings',
-			array(
 				'paypal_brasil_handler_url' => add_query_arg(
 					array(
 						'wc-api' => 'paypal_brasil_handler',
@@ -427,6 +422,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 					),
 					home_url() . '/'
 				)
+				//'only_payment_method' => $isOnlyPaymentMethod
+				//'ajax_url' => admin_url( 'admin-ajax.php' ),
 			)
 		);
 
@@ -894,6 +891,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			'payer_id' => '',
 			'dummy' => false,
 			'invalid' => [],
+			'wc-bcdc-brasil-selected' => false
 		];
 
 		// Verifica se os dados estão no objeto $order
@@ -946,7 +944,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			];
 
 
-			WC_PAYPAL_LOGGER::log("Checkout data has been captured",$this->id,'info');
+			WC_PAYPAL_LOGGER::log("Checkout data has been captured", $this->id, 'info');
 		}
 
 		// Adiciona dados específicos do plugin "Brazilian Market on WooCommerce"
@@ -974,13 +972,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			}
 		}
 
-		// Valida os dados coletados
-		//$validation = $this->validate_data($billing_data);
-		/*if ($validation) {
-			return ['errors' => $validation];
-		}*/
-
 		$billing_data['can_create_payment'] = $can_create_payment;
+
 		if (!empty($missing_fields)) {
 			// Create the payment.
 			$payment = $order ? $this->create_payment_for_order($billing_data, $order) : $this->create_payment_for_cart_without_payer($billing_data);
@@ -996,8 +989,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 				$billing_data['payment_id'] = $payment['id'];
 			}
 		}
-
 		return $billing_data;
+
 	}
 
 		/**

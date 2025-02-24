@@ -28,6 +28,15 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 	private static $instance;
 	private static $uuid;
 
+	public string $title_complement;
+	public string $format;
+	public string $color;
+	public string $shortcut_enabled;
+	public string $reference_enabled;
+	public string $invoice_id_prefix;
+
+
+
 	/**
 	 * PayPal_Brasil_Plus constructor.
 	 */

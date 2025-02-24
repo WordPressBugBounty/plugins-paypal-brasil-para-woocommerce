@@ -30,6 +30,14 @@ class PayPal_Brasil_API {
 		'default'   => 'WooCommerceBrazil_Ecom_EC',
 	);
 
+	private string $access_token_transient_key;
+	private string $mode;
+	private string $base_url;
+	private string $client_id;
+	private string $secret;
+	private string $partner_attribution_id;
+	private PayPal_Brasil_Gateway $gateway;
+
 	/**
 	 * PayPal_Brasil_API constructor.
 	 *

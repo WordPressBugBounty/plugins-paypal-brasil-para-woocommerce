@@ -26,6 +26,10 @@ use Automattic\WooCommerce\Utilities\OrderUtil;
 class PayPal_Brasil_Plus_Gateway extends PayPal_Brasil_Gateway
 {
 
+	private string $invoice_id_prefix;
+	private string $form_height;
+	private string $title_complement;
+
 	/**
 	 * PayPal_Brasil_Plus_Gateway constructor.
 	 */

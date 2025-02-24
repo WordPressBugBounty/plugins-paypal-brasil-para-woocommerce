@@ -16,6 +16,7 @@ class PayPal_Brasil
 	 * @var PayPal_Brasil
 	 */
 	private static $instance;
+	private PayPal_Brasil_Handler $handler;
 
 	/**
 	 * PayPal_Brasil constructor.

@@ -27,6 +27,12 @@ class PayPal_Brasil_Orders_api_V2
 		'default' => 'WooCommerceBrazil_Ecom_EC',
 	);
 
+	private PayPal_Brasil_Gateway $gateway;
+	private string $mode;
+	private string $client_id;
+	private string  $secret;
+	private string $access_token_transient_key;
+
 	/**
 	 * PayPal_Brasil_API constructor.
 	 *

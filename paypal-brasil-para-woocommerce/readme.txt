@@ -3,13 +3,13 @@
 Contributors: suporteppbr, bycoders
 Tags: paypal, woocommerce, checkout transparente, paypal brasil, ecommerce
 Requires at least: 4.4
-Tested up to: 6.6.1
-Stable tag: 1.6.2
+Tested up to: 6.7.2
+Stable tag: 1.6.3
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI:  [http://www.gnu.org/licenses/gpl-2.0.html](http://www.gnu.org/licenses/gpl-2.0.html)
 WC requires at least: 3.6
-WC tested up to:  9.1.4
+WC tested up to:  9.7.0
 
 Easily add PayPal payment options to your WooCommerce store.
 
@@ -89,6 +89,10 @@ If you have any questions or difficulties using the plugin, access the Support s
 5. PayPal account login screen.
 
 == Changelog ==
+
+= 1.6.3 =
+* Fix error on checkout experience with other payments.
+* Fix PHP 8.2 compatibility.
 
 = 1.6.2 =
 * Improvement experience on checkout.
@@ -252,8 +256,9 @@ If you have any questions or difficulties using the plugin, access the Support s
 
 == Upgrade Notice ==
 
-= 1.6.2 =
-* Improvement experience on checkout.
+= 1.6.3 =
+* Fix error on checkout experience with other payments.
+* Fix PHP 8.2 compatibility.
 
 == Screenshots ==
 

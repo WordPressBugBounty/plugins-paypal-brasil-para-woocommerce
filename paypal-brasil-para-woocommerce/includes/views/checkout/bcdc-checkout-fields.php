@@ -30,6 +30,7 @@ try {
         <input type="hidden" id="wc-bcdc-brasil-data" name="wc-bcdc-brasil-data"
             value="<?php echo htmlentities(json_encode($data)); ?>">
         <input type="hidden" id="wc-bcdc-brasil-response" name="wc-bcdc-brasil-response" value="">
+        <input type="hidden" id="wc-bcdc-brasil-selected" name="wc-bcdc-brasil-selected" value="">
         <input type="hidden" id="wc-bcdc-brasil-error" name="wc-bcdc-brasil-error"
             value="<?php if ($data_error) {
                 echo htmlentities(json_encode($data_error));
