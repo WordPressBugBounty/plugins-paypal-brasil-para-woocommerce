@@ -972,6 +972,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			}
 		}
 
+		$billing_data['wc-bcdc-brasil-selected'] = filter_var($post_data['wc-bcdc-brasil-selected'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 		$billing_data['can_create_payment'] = $can_create_payment;
 
 		if (!empty($missing_fields)) {
@@ -1262,7 +1263,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 							),
 						)
 					);
-					
+
 					if ($this->validate_address($shipping_address)) {
 						$shipping['shipping']['address'] = $shipping_address;
 						$payment_data['payment_source']['paypal']['address'] = $shipping_address;
@@ -1304,7 +1305,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		if (!isset($payment_data['payment_source']['paypal']) || !is_array($payment_data['payment_source']['paypal'])) {
 			$payment_data['payment_source']['paypal'] = [];
 		}
-		
+
 		// Mesclar os dados do pagador
 		$payment_data['payment_source']['paypal'] = array_merge(
 			$payment_data['payment_source']['paypal'],
@@ -1346,7 +1347,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 			if (!isset($result['payment_source']['paypal']['address']) || !isset($result['payer']['address'])) {
 				WC_PAYPAL_LOGGER::log("Order created without address.", $this->id, "warning", $result);
-			}else{
+			} else {
 				WC_PAYPAL_LOGGER::log("Order body", $this->id, "info", $result);
 			}
 
@@ -1368,7 +1369,9 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 												Identificador do erro: {$debug_id}", "paypal-brasil-para-woocommerce"));
 		$exception->data = $exception_data;
 
-		throw $exception;
+		if ($data['wc-bcdc-brasil-selected']) {
+			throw $exception;
+		}
 	}
 
 	/**
