@@ -98,6 +98,14 @@ class WC_PAYPAL_LOGGER
 	function filterData(array $data): array
 	{
 		$fieldsToMask = ["address_line_1", "address_line_2", "admin_area_1", "admin_area_2", "country_code", "postal_code", "email_address", "surname", "national_number", "tax_id", "tax_id_type", "email", "full_name", "document", "documentType", "phone"];
+
+
+		// Caso contenha um debug_id, executa um filtro especial
+		if (isset($data['debug_id'])) {
+			return $this->filterDataPaypalError($data);
+		}
+
+
 		foreach ($data as $key => &$value) {
 			// Se a chave estiver na lista de campos para mascarar e o valor for uma string, aplique a máscara
 			if (in_array($key, $fieldsToMask) && is_string($value)) {
@@ -107,6 +115,21 @@ class WC_PAYPAL_LOGGER
 			// Se o valor for um array, aplique a função recursivamente
 			if (is_array($value)) {
 				$value = $this->filterData($value);
+			}
+		}
+
+		return $data;
+	}
+
+	function filterDataPaypalError(array $data): array
+	{
+		if (!isset($data['debug_id']) || empty($data['details'])) {
+			return $data;
+		}
+
+		foreach ($data['details'] as &$detail) {
+			if (!empty($detail['value']) && is_string($detail['value'])) {
+				$detail['value'] = $this->maskString($detail['value']);
 			}
 		}
 

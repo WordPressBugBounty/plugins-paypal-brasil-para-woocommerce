@@ -699,19 +699,19 @@ class PayPal_Brasil_Plus_Gateway extends PayPal_Brasil_Gateway
 		);
 		if ($order) {
 			$billing_cellphone = get_post_meta($order->get_id(), '_billing_cellphone', true);
-			$data['postcode'] = $order->get_shipping_postcode();
-			$data['address'] = $order->get_shipping_address_1();
-			$data['address_2'] = $order->get_shipping_address_2();
-			$data['city'] = $order->get_shipping_city();
-			$data['state'] = $order->get_shipping_state();
-			$data['country'] = $order->get_shipping_country();
-			$data['neighborhood'] = get_post_meta($order->get_id(), '_billing_neighborhood', true);
-			$data['number'] = get_post_meta($order->get_id(), '_billing_number', true);
-			$data['first_name'] = $order->get_billing_first_name();
-			$data['last_name'] = $order->get_billing_last_name();
-			$data['person_type'] = get_post_meta($order->get_id(), '_billing_persontype', true);
-			$data['cpf'] = get_post_meta($order->get_id(), '_billing_cpf', true);
-			$data['cnpj'] = get_post_meta($order->get_id(), '_billing_cnpj', true);
+			$data['postcode'] = $order->get_billing_postcode() ?? $order->get_shipping_postcode();
+			$data['address'] = $order->get_billing_address_1() ?? $order->get_shipping_address_1();
+			$data['address_2'] = $order->get_billing_address_2() ?? $order->get_shipping_address_2();
+			$data['city'] = $order->get_billing_city()  ?? $order->get_shipping_city();
+			$data['state'] = $order->get_billing_state() ?? $order->get_shipping_state();
+			$data['country'] = $order->get_billing_country() ?? $order->get_shipping_country();
+			$data['neighborhood'] = $order->get_meta('_billing_neighborhood',true,"view");
+			$data['number'] = $order->get_meta('_billing_number',true,"view");
+			$data['first_name'] = $order->get_billing_first_name()  ?? $order->get_shipping_first_name();
+			$data['last_name'] = $order->get_billing_last_name()  ?? $order->get_shipping_last_name();
+			$data['person_type'] = $order->get_meta('_billing_persontype',true,"view");
+			$data['cpf'] = $order->get_meta('_billing_cpf',true,"view");
+			$data['cnpj'] = $order->get_meta('_billing_cnpj',true,"view");
 			$data['phone'] = $billing_cellphone ? $billing_cellphone : $order->get_billing_phone();
 			$data['email'] = $order->get_billing_email();
 		} else if ($_POST) {

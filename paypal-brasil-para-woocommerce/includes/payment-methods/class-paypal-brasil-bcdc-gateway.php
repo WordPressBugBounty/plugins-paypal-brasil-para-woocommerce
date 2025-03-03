@@ -512,7 +512,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 		try{
 			$execution_response = $this->api->execute_payment($order_id, array(), 'bcdc');
-			WC_PAYPAL_LOGGER::log("Payment capture is completed.",$this->id,'info', $execution_response);
+			WC_PAYPAL_LOGGER::log("Payment capture is completed.",$this->id,'info', $execution_response, array('action'=> 'CAPTURE_ORDER'));
+
 		}catch(PayPal_Brasil_API_Exception $ex){
 			$data = $ex->getData();
 			WC_PAYPAL_LOGGER::log("Payment capture error.",$this->id,'error',$data);
@@ -897,20 +898,20 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		// Verifica se os dados estão no objeto $order
 		if ($order) {
 			$billing_data = [
-				'postcode' => $order->get_shipping_postcode(),
-				'address' => $order->get_shipping_address_1(),
-				'address_2' => $order->get_shipping_address_2(),
-				'city' => $order->get_shipping_city(),
-				'state' => $order->get_shipping_state(),
-				'country' => $order->get_shipping_country(),
-				'neighborhood' => get_post_meta($order->get_id(), '_billing_neighborhood', true),
-				'number' => get_post_meta($order->get_id(), '_billing_number', true),
-				'first_name' => $order->get_billing_first_name(),
-				'last_name' => $order->get_billing_last_name(),
-				'person_type' => get_post_meta($order->get_id(), '_billing_persontype', true),
-				'cpf' => get_post_meta($order->get_id(), '_billing_cpf', true),
-				'cnpj' => get_post_meta($order->get_id(), '_billing_cnpj', true),
-				'phone' => get_post_meta($order->get_id(), '_billing_cellphone', true) ?: $order->get_billing_phone(),
+				'postcode' => $order->get_billing_postcode() ?? $order->get_shipping_postcode(),
+				'address' => $order->get_billing_address_1() ?? $order->get_shipping_address_1(),
+				'address_2' => $order->get_billing_address_2() ?? $order->get_shipping_address_2(),
+				'city' => $order->get_billing_city()  ?? $order->get_shipping_city(),
+				'state' => $order->get_billing_state() ?? $order->get_shipping_state(),
+				'country' => $order->get_billing_country() ?? $order->get_shipping_country(),
+				'neighborhood' => $order->get_meta('_billing_neighborhood',true,"view"),
+				'number' => $order->get_meta('_billing_number',true,"view"),
+				'first_name' => $order->get_billing_first_name()  ?? $order->get_shipping_first_name(),
+				'last_name' => $order->get_billing_last_name()  ?? $order->get_shipping_last_name(),
+				'person_type' => $order->get_meta('_billing_persontype',true,"view"),
+				'cpf' => $order->get_meta('_billing_cpf',true,"view"),
+				'cnpj' => $order->get_meta('_billing_cnpj',true,"view"),
+				'phone' => $order->get_meta('_billing_cellphone',true,"view") ?: $order->get_billing_phone(),
 				'email' => $order->get_billing_email(),
 			];
 		} else {
@@ -972,7 +973,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			}
 		}
 
-		$billing_data['wc-bcdc-brasil-selected'] = filter_var($post_data['wc-bcdc-brasil-selected'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+		$billing_data['wc-bcdc-brasil-selected'] = isset($post_data) ? filter_var($post_data['wc-bcdc-brasil-selected'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : false;
 		$billing_data['can_create_payment'] = $can_create_payment;
 
 		if (!empty($missing_fields)) {
@@ -1533,6 +1534,12 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			// Create the payment.
 			$result = $this->api->create_payment($payment_data, array(), 'bcdc');
 
+			if (!isset($result['payment_source']['paypal']['address']) || !isset($result['payer']['address'])) {
+				WC_PAYPAL_LOGGER::log("Order created without address.", $this->id, "warning", $result);
+			} else {
+				WC_PAYPAL_LOGGER::log("Order body", $this->id, "info", $result);
+			}
+			
 			return $result;
 			// Catch any PayPal error.
 		} catch (PayPal_Brasil_API_Exception $ex) {
