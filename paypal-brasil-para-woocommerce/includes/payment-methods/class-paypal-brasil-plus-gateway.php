@@ -1108,7 +1108,7 @@ class PayPal_Brasil_Plus_Gateway extends PayPal_Brasil_Gateway
 			return $result;
 		} catch (PayPal_Brasil_API_Exception $ex) { // Catch any PayPal error.
 			$error_data = $ex->getData();
-			if ($error_data['name'] === 'VALIDATION_ERROR') {
+			if (isset($error_data['name']) && $error_data['name'] === 'VALIDATION_ERROR') {
 				$exception_data = $error_data['details'];
 			}
 

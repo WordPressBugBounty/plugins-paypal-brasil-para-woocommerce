@@ -1,20 +1,5 @@
 <div class="admin-options-container">
 
-    <div class="alert-dialog" v-if="showAlert && mode === 'live'">
-        <div class="dialog-content">
-            <img class="error-image"
-                src="<?php echo esc_url(plugins_url('assets/images/triangle.png', PAYPAL_PAYMENTS_MAIN_FILE)); ?>">
-            <?php _e("<p>Dear customer, <strong>PayPal Transparent Checkout</strong> only works in production upon
-                commercial release, if you have already received approval, please ignore this message. Otherwise,
-                call our sales center (0800 047 4482) and request it right now.</p>
-            <p>If you are seeing the \"prohibited\" sign during checkout, your account is not cleared for
-                usage.</p>", "paypal-brasil-para-woocommerce"); ?>
-            <div class="dialog-actions">
-                <button class="close-button" type="button" v-on:click="closeAlert">Ok</button>
-            </div>
-        </div>
-    </div>
-
     <?php if ((empty($_POST) && $this->enabled === 'yes') || (isset($_POST) && $this->get_updated_values()['enabled'] === 'yes')): ?>
 
         <!-- CREDENTIALS ERROR -->

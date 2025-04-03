@@ -508,9 +508,10 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 				'value' => sprintf(__('Order #%s performed in the store %s', "paypal-brasil-para-woocommerce"), $order->get_id(), get_bloginfo('name')),
 			),
 		);
-		$this->api->update_payment($order_id, $patch_data, array(), 'bcdc');
-
+		
 		try{
+			$this->api->update_payment($order_id, $patch_data, array(), 'bcdc');
+
 			$execution_response = $this->api->execute_payment($order_id, array(), 'bcdc');
 			WC_PAYPAL_LOGGER::log("Payment capture is completed.",$this->id,'info', $execution_response, array('action'=> 'CAPTURE_ORDER'));
 
@@ -569,12 +570,6 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 					break;
 				case 'INVALID_OR_EXPIRED_TOKEN':
 					wc_add_notice(__('Session expired. Please try again.', "paypal-brasil-para-woocommerce"), 'error');
-					break;
-				case 'MISSING_EXPERIENCE_PROFILE_ID':
-					wc_add_notice(__('Internal error.', "paypal-brasil-para-woocommerce"), 'error');
-					break;
-				case 'IFRAME_MISSING_EXPERIENCE_PROFILE_ID':
-					wc_add_notice(__('Internal error.', "paypal-brasil-para-woocommerce"), 'error');
 					break;
 				default:
 					wc_add_notice(__('Please review the entered credit card information.', "paypal-brasil-para-woocommerce"), 'error');
@@ -730,45 +725,28 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			$data = $ex->getData();
 			switch ($data['name']) {
 				// Repeat the execution
-				case 'INTERNAL_SERVICE_ERROR':
+				case 'INTERNAL_SERVER_ERROR':
 					if ($force) {
 						wc_add_notice(sprintf(__('Internal error.', "paypal-brasil-para-woocommerce")), 'error');
 					} else {
 						$this->process_payment($order_id, true);
 					}
 					break;
-				case 'VALIDATION_ERROR':
-					wc_add_notice(sprintf(__('An unexpected error occurred, please try again. If the error persists, please contact us.', "paypal-brasil-para-woocommerce")), 'error');
+				case 'INVALID_REQUEST':
+					$debug_id = isset($data['debug_id']) ? $data['debug_id'] : ""; 
+					wc_add_notice(sprintf(__("An unexpected error occurred, please try again. If the error persists, please contact us ($debug_id).", "paypal-brasil-para-woocommerce")), 'error');
 					break;
-				case 'PAYMENT_ALREADY_DONE':
-					wc_add_notice(__('A payment already exists for this order.', "paypal-brasil-para-woocommerce"), 'error');
+				case 'RESOURCE_CONFLICT':
+					$debug_id = isset($data['debug_id']) ? $data['debug_id'] : ""; 
+					wc_add_notice(__("A payment already exists for this order ($debug_id).", "paypal-brasil-para-woocommerce"), 'error');
 					break;
-				case "NO_VALID_FUNDING_SOURCE_OR_RISK_REFUSED":
-					wc_add_notice(__("Payment not approved. Please try again.", "paypal-brasil-para-woocommerce"), "error");
-					break;
-				case "TRY_ANOTHER_CARD":
-					wc_add_notice(__("Try another card.", "paypal-brasil-para-woocommerce"), 'error');
-					break;
-				case "NO_VALID_FUNDING_INSTRUMENT":
-					wc_add_notice(__("Payment not approved. Please try again.", "paypal-brasil-para-woocommerce"), 'error');
-					break;
-				case "CARD_ATTEMPT_INVALID":
-					wc_add_notice(__("Payment not approved. Please try again.", "paypal-brasil-para-woocommerce"), "error");
-					break;
-				case "INVALID_OR_EXPIRED_TOKEN":
-					wc_add_notice(__("Session expired. Please try again.", "paypal-brasil-para-woocommerce"), "error");
-					break;
-				case "CHECK_ENTRY":
-					wc_add_notice(__("Check the entered data", "paypal-brasil-para-woocommerce"), "error");
-					break;
-				case 'MISSING_EXPERIENCE_PROFILE_ID':
-					wc_add_notice(__('Internal error.', "paypal-brasil-para-woocommerce"), 'error');
-					break;
-				case 'IFRAME_MISSING_EXPERIENCE_PROFILE_ID':
-					wc_add_notice(__('Internal error.', "paypal-brasil-para-woocommerce"), 'error');
+				case "UNPROCESSABLE_ENTITY":
+					$debug_id = isset($data['debug_id']) ? $data['debug_id'] : "";
+					wc_add_notice(__("Payment not approved. Please try again ($debug_id).", "paypal-brasil-para-woocommerce"), "error");
 					break;
 				default:
-					wc_add_notice('Payment not approved. Please try again or select another payment method.', 'error');
+					$debug_id = isset($data['debug_id']) ? $data['debug_id'] : "";
+					wc_add_notice("Payment not approved. Please try again or select another payment method ($debug_id).", 'error');
 					break;
 			}
 
@@ -777,17 +755,31 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			do_action('wc_bcdc_brasil_process_payment_error', 'API_EXCEPTION', $order_id, $data['name']);
 
 			$error_type = $data['name'];
-			$order->add_order_note(__("There was an error executing the payment through PayPal: <b>EXECUTE_$error_type</b>", "paypal_brasil_para_woocommerce"));
+			$debug_id = isset($data['debug_id']) ? $data['debug_id'] : "";
+			$order->add_order_note(__("There was an error executing the payment through PayPal: <b>EXECUTE_$error_type - DEBUG_ID_$debug_id</b>", "paypal_brasil_para_woocommerce"));
 			$order->update_status('wc-failed');
 			$order->save();
 
+			return null;
+		} catch (Throwable $e) {
+		
+			$error_data = array("code" => $e->getCode(), "message" => $e->getMessage(), "stackTrace" => $e->getTraceAsString()); 
+			// Gera um código único para depuração
+			$error_code = uniqid('paypal_brasil_para_woocommerce_err_');
+
+			WC_PAYPAL_LOGGER::log("Payment capture error ($error_code). ",$this->id,'error',$error_data, ["error_code: $error_code"] );
+
+			$order->add_order_note(__("There was an error when trying to process the payment through PayPal. Please contact support. ($error_code)", "paypal-brasil-para-woocommerce"));
+			$order->update_status('wc-failed');
+			$order->save();
+			
 			return null;
 		}
 
 		$order->add_order_note(__('There was an unknown error when trying to process the payment through PayPal. Please contact support.', "paypal-brasil-para-woocommerce"));
 		$order->update_status('wc-failed');
 		$order->save();
-
+		
 		return null;
 	}
 
@@ -1354,8 +1346,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 			return $result;
 		} catch (PayPal_Brasil_API_Exception $ex) { // Catch any PayPal error.
-			$error_data = $ex->getData();
-			if ($error_data['name'] === 'VALIDATION_ERROR') {
+			$error_data = !empty($ex->getData()) ? $ex->getData() : array("code" => $ex->getCode(), "message" => $ex->getMessage()); 
+			if ((isset($error_data['name'])) && $error_data['name'] === 'VALIDATION_ERROR') {
 				$exception_data = $error_data['details'];
 			}
 
@@ -1370,7 +1362,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 												Identificador do erro: {$debug_id}", "paypal-brasil-para-woocommerce"));
 		$exception->data = $exception_data;
 
-		if ($data['wc-bcdc-brasil-selected']) {
+		if ((isset($data['wc-bcdc-brasil-selected'])) && $data['wc-bcdc-brasil-selected']) {
 			throw $exception;
 		}
 	}

@@ -294,7 +294,7 @@ class PayPal_Brasil_Orders_api_V2
 		}
 
 		// Get response.
-		$response = $this->do_request('CAPTURE_ORDER', $url, 'POST', $headers);
+		$response = $this->do_request('CAPTURE_ORDER', $url, 'POST',array(), $headers);
 		$response_body = json_decode(wp_remote_retrieve_body($response), true);
 
 		// Check if is WP_Error
@@ -339,7 +339,7 @@ class PayPal_Brasil_Orders_api_V2
 		}
 
 		// Get response.
-		$response = $this->do_request('CAPTURE_ORDER', $url, 'POST', $headers);
+		$response = $this->do_request('CAPTURE_ORDER', $url, 'POST', array(),$headers);
 		$response_body = json_decode(wp_remote_retrieve_body($response), true);
 
 		// Check if is WP_Error

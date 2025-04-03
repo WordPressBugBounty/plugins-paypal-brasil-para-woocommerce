@@ -2,14 +2,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PayPal Brasil para WooCommerce 1.4.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/paypal-brasil-para-woocommerce\n"
+"POT-Creation-Date: 2023-03-09T11:08:01-03:00\n"
+"PO-Revision-Date: 2025-04-03 16:27-0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-03-09T11:08:01-03:00\n"
-"PO-Revision-Date: 2024-09-18 15:44-0300\n"
-"Language: pt_BR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Poedit 3.5\n"
 "X-Domain: paypal-brasil-para-woocommerce\n"
@@ -23,7 +23,7 @@ msgid "Adicione facilmente opções de pagamento do PayPal à sua loja do WooCom
 msgstr "Adicione facilmente opções de pagamento do PayPal à sua loja do WooCommerce."
 
 #. Author of the plugin
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:188
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:197
 msgid "PayPal"
 msgstr "Paypal"
 
@@ -31,66 +31,66 @@ msgstr "Paypal"
 msgid "https://paypal.com.br"
 msgstr "https://paypal.com.br"
 
-#: class-paypal-brasil.php:176
+#: class-paypal-brasil.php:177
 msgid "Settings"
 msgstr "Configurações"
 
-#: includes/api/class-paypal-brasil-api.php:145
-#: includes/api/class-paypal-orders-api-v2.php:182
+#: includes/api/class-paypal-brasil-api.php:153
+#: includes/api/class-paypal-orders-api-v2.php:189
 msgid "Unable to get access token."
 msgstr "Não foi possível obter o token de acesso."
 
-#: includes/api/class-paypal-brasil-api.php:184
+#: includes/api/class-paypal-brasil-api.php:192
 msgid "Unable to create payment."
 msgstr "Não foi possível criar o pagamento."
 
-#: includes/api/class-paypal-brasil-api.php:221
-#: includes/api/class-paypal-orders-api-v2.php:265
+#: includes/api/class-paypal-brasil-api.php:229
+#: includes/api/class-paypal-orders-api-v2.php:272
 msgid "Unable to obtain payment details."
 msgstr "Não foi possível obter os dados de pagamento."
 
-#: includes/api/class-paypal-brasil-api.php:264
-#: includes/api/class-paypal-orders-api-v2.php:307
-#: includes/api/class-paypal-orders-api-v2.php:352
+#: includes/api/class-paypal-brasil-api.php:272
+#: includes/api/class-paypal-orders-api-v2.php:314
+#: includes/api/class-paypal-orders-api-v2.php:359
 msgid "Unable to execute payment."
 msgstr "Não é possível executar o pagamento."
 
-#: includes/api/class-paypal-brasil-api.php:300
+#: includes/api/class-paypal-brasil-api.php:308
 msgid "Unable to update payment."
 msgstr "Não foi possível atualizar o pagamento."
 
-#: includes/api/class-paypal-brasil-api.php:348
-#: includes/api/class-paypal-orders-api-v2.php:447
+#: includes/api/class-paypal-brasil-api.php:356
+#: includes/api/class-paypal-orders-api-v2.php:454
 msgid "Could not create billing authorization token."
 msgstr "Não foi possível criar o token de autorização de cobrança."
 
-#: includes/api/class-paypal-brasil-api.php:376
-#: includes/api/class-paypal-orders-api-v2.php:483
+#: includes/api/class-paypal-brasil-api.php:384
+#: includes/api/class-paypal-orders-api-v2.php:490
 msgid "Unable to create billing authorization."
 msgstr "Não foi possível criar a autorização de cobrança."
 
-#: includes/api/class-paypal-brasil-api.php:414
-#: includes/api/class-paypal-orders-api-v2.php:529
+#: includes/api/class-paypal-brasil-api.php:422
+#: includes/api/class-paypal-orders-api-v2.php:536
 msgid "Unable to get installment options."
 msgstr "Não consigo opções de parcelamento."
 
-#: includes/api/class-paypal-brasil-api.php:448
-#: includes/api/class-paypal-orders-api-v2.php:572
+#: includes/api/class-paypal-brasil-api.php:456
+#: includes/api/class-paypal-orders-api-v2.php:579
 msgid "Unable to verify PayPal signature."
 msgstr "Não foi possível verificar a assinatura do PayPal."
 
-#: includes/api/class-paypal-brasil-api.php:480
-#: includes/api/class-paypal-orders-api-v2.php:612
+#: includes/api/class-paypal-brasil-api.php:488
+#: includes/api/class-paypal-orders-api-v2.php:619
 msgid "Unable to get the webhooks."
 msgstr "Não foi possível obter os webhooks."
 
-#: includes/api/class-paypal-brasil-api.php:527
-#: includes/api/class-paypal-orders-api-v2.php:668
+#: includes/api/class-paypal-brasil-api.php:535
+#: includes/api/class-paypal-orders-api-v2.php:675
 msgid "Could not create webhook."
 msgstr "Não foi possível criar o webhook."
 
-#: includes/api/class-paypal-brasil-api.php:575
-#: includes/api/class-paypal-orders-api-v2.php:725
+#: includes/api/class-paypal-brasil-api.php:583
+#: includes/api/class-paypal-orders-api-v2.php:732
 msgid "It was not possible to make a refund."
 msgstr "Não foi possível fazer o reembolso."
 
@@ -105,6 +105,7 @@ msgstr "Método de pagamento PayPal não encontrado"
 #: includes/handlers/api/class-paypal-brasil-api-bcdc-checkout-handler.php:162
 #: includes/handlers/api/class-paypal-brasil-api-billing-agreement-token.php:30
 #: includes/handlers/api/class-paypal-brasil-api-checkout-handler.php:30
+#: includes/handlers/api/class-paypal-brasil-api-logger-handler.php:76
 #: includes/handlers/api/class-paypal-brasil-api-shortcut-cart-handler.php:30
 #: includes/handlers/api/class-paypal-brasil-api-shortcut-mini-cart-handler.php:30
 msgid "nonce"
@@ -120,10 +121,11 @@ msgstr "Token criado com sucesso."
 
 #: includes/handlers/api/class-paypal-brasil-api-bcdc-checkout-handler.php:410
 #: includes/handlers/api/class-paypal-brasil-api-billing-agreement-token.php:102
-#: includes/handlers/api/class-paypal-brasil-api-checkout-handler.php:270
+#: includes/handlers/api/class-paypal-brasil-api-checkout-handler.php:282
+#: includes/handlers/api/class-paypal-brasil-api-logger-handler.php:150
 #: includes/handlers/api/class-paypal-brasil-api-save-billing-agreement.php:112
-#: includes/handlers/api/class-paypal-brasil-api-shortcut-cart-handler.php:175
-#: includes/handlers/api/class-paypal-brasil-api-shortcut-mini-cart-handler.php:174
+#: includes/handlers/api/class-paypal-brasil-api-shortcut-cart-handler.php:188
+#: includes/handlers/api/class-paypal-brasil-api-shortcut-mini-cart-handler.php:185
 msgid "The %s is invalid."
 msgstr "O %s é inválido."
 
@@ -194,23 +196,24 @@ msgid "You cannot pay for an empty order."
 msgstr "Você não pode pagar por um pedido vazio."
 
 #: includes/handlers/api/class-paypal-brasil-api-bcdc-checkout-handler.php:356
-#: includes/handlers/api/class-paypal-brasil-api-checkout-handler.php:224
-#: includes/handlers/api/class-paypal-brasil-api-shortcut-cart-handler.php:162
-#: includes/handlers/api/class-paypal-brasil-api-shortcut-mini-cart-handler.php:161
+#: includes/handlers/api/class-paypal-brasil-api-checkout-handler.php:236
+#: includes/handlers/api/class-paypal-brasil-api-shortcut-cart-handler.php:175
+#: includes/handlers/api/class-paypal-brasil-api-shortcut-mini-cart-handler.php:172
 msgid "Payment created successfully."
 msgstr "Pagamento criado com sucesso."
 
 #: includes/handlers/api/class-paypal-brasil-api-bcdc-checkout-handler.php:370
 #: includes/handlers/api/class-paypal-brasil-api-bcdc-checkout-handler.php:389
-#: includes/handlers/api/class-paypal-brasil-api-checkout-handler.php:237
-#: includes/handlers/api/class-paypal-brasil-api-checkout-handler.php:253
+#: includes/handlers/api/class-paypal-brasil-api-checkout-handler.php:249
+#: includes/handlers/api/class-paypal-brasil-api-checkout-handler.php:265
+#: includes/handlers/api/class-paypal-brasil-api-logger-handler.php:141
 #: includes/handlers/api/class-paypal-brasil-api-save-billing-agreement.php:120
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:226
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:228
 msgid "The field <strong>%s</strong> is required."
 msgstr "O campo <strong>%s</strong> é obrigatório."
 
 #: includes/handlers/api/class-paypal-brasil-api-bcdc-checkout-handler.php:392
-#: includes/handlers/api/class-paypal-brasil-api-checkout-handler.php:255
+#: includes/handlers/api/class-paypal-brasil-api-checkout-handler.php:267
 msgid "The field <strong>%s</strong> is invalid."
 msgstr "O campo <strong>%s</strong> é inválido."
 
@@ -219,7 +222,7 @@ msgid "Billing Agreement"
 msgstr "Contrato de cobrança"
 
 #: includes/handlers/api/class-paypal-brasil-api-save-billing-agreement.php:83
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:660
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:669
 msgid "There was a problem verifying the payment settlement token session."
 msgstr "Ocorreu um problema ao verificar a sessão do token de liquidação de pagamento."
 
@@ -230,8 +233,8 @@ msgstr "Contrato de pagamento salvo com sucesso."
 #: includes/handlers/api/class-paypal-brasil-api-bcdc-checkout-handler.php:277
 #: includes/handlers/api/class-paypal-brasil-api-checkout-handler.php:146
 #: includes/handlers/api/class-paypal-brasil-api-shortcut-mini-cart-handler.php:81
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1088
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1639
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1109
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1692
 msgid "Store order %s"
 msgstr "Pedido da loja %s"
 
@@ -292,61 +295,59 @@ msgstr "As configurações do WooCommerce não foram alteradas."
 msgid "Webhook successfully treated."
 msgstr "Webhook tratado com sucesso."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:39
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:46
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:39
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:39
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:41
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:43
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:50
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:46
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:47
 msgid "PayPal Brasil"
 msgstr "PayPal Brasil"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:40
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:47
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:40
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:40
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:44
 msgid "Add PayPal Transparent Checkout to Your WooCommerce Store."
 msgstr "Adicione o checkout transparente do PayPal à sua loja WooCommerce."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:51
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:52
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:58
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:56
 msgid "PayPal Brasil - Transparent Checkout"
 msgstr "PayPal Brasil - Checkout Transparente"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:243
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:245
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:138
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:138
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:203
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:260
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:266
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:272
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:77
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:83
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:66
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:70
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:142
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:212
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:269
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:275
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:281
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:62
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:68
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:44
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:48
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:59
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:63
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:300
 msgid "Enable/Disable"
 msgstr "Habilitar/Desabilitar"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:245
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:288
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:298
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:308
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:247
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:291
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:140
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:183
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:140
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:183
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:205
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:239
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:249
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:262
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:268
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:274
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:91
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:419
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:80
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:291
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:144
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:187
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:214
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:248
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:258
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:271
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:277
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:283
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:76
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:306
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:58
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:269
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:73
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:278
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:286
@@ -355,239 +356,236 @@ msgstr "Habilitar/Desabilitar"
 msgid "Enable"
 msgstr "Habilitar"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:249
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:251
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:144
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:144
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:209
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:148
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:218
 msgid "Display name (add-on)"
 msgstr "Nome de exibição (complemento)"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:253
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:255
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:148
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:148
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:213
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:152
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:222
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:103
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:107
 msgid "Mode"
 msgstr "Modo"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:256
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:258
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:151
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:151
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:216
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:155
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:225
 msgid "Live"
 msgstr "Produção"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:257
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:259
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:152
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:152
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:217
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:149
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:128
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:156
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:226
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:134
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:106
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:114
 msgid "Sandbox"
 msgstr "Sandbox"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:259
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:261
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:154
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:154
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:158
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:116
 msgid "Use this option to toggle between Sandbox and Production modes. Sandbox is used for testing and Production for actual purchases."
 msgstr "Use esta opção para alternar entre os modos Sandbox e Produção. Sandbox é usado para testes e produção para compras reais."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:306
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:289
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:181
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:181
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:407
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:413
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:279
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:283
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:185
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:294
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:300
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:257
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:261
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:403
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:407
 msgid "Debug mode"
 msgstr "Modo depuração"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:309
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:292
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:184
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:184
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:188
 msgid "Enable this mode to debug the application in case of approval or errors."
 msgstr "Ative este modo para depurar o aplicativo em caso de aprovação ou erros."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:310
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:293
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:185
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:185
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:189
 msgid "Logs will be saved to the path: %s."
 msgstr "Os logs serão salvos no caminho: %s."
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:188
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:188
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:234
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:238
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:192
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:212
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:216
 msgid "Form height"
 msgstr "Altura do formulário"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:316
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:191
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:191
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:195
 msgid "px"
 msgstr "px"
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:192
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:192
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:196
 msgid "Use this option to define a maximum height of the credit card form (a value in pixels will be considered). A value in pixels between 400 - 550 will be accepted."
 msgstr "Use esta opção para definir uma altura máxima do formulário de cartão de crédito (será considerado um valor em pixels). Um valor em pixels entre 400 - 550 será aceito."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:1487
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:1743
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:210
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:210
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:214
 msgid "Status do Sistema &gt; Logs"
 msgstr "Status do Sistema &gt; Logs"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:551
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:559
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:246
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:246
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:250
 msgid "An unexpected error occurred, please try again. If the error persists, contact. (#23)"
 msgstr "Ocorreu um erro inesperado, tente novamente. Se o erro persistir, entre em contato. (#23)"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:573
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:575
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:268
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:268
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:272
 msgid "Please review the entered credit card information."
 msgstr "Revise as informações do cartão de crédito inseridas."
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:285
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:285
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:289
 msgid "You are not allowed to do that."
 msgstr "Você não tem permissão para fazer isso."
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:289
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:289
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:293
 msgid "A payment attempt was made without filling in the card details."
 msgstr "Foi efetuada uma tentativa de pagamento sem preencher os dados do cartão."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:596
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:598
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:305
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:305
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:309
 msgid "We were unable to identify the payment ID. Please refresh the page and try again."
 msgstr "Não foi possível identificar o ID do pagamento. Atualize a página e tente novamente."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:601
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:603
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:310
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:310
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:314
 msgid "There was an internal error processing the payment. The payment ID was not identified."
 msgstr "Ocorreu um erro interno ao processar o pagamento. O ID de pagamento não foi identificado."
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:320
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:320
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:324
 msgid "We were unable to complete the payment via PayPal, please try again. If the error persists, please contact us."
 msgstr "Não foi possível concluir o pagamento via PayPal, tente novamente. Se o erro persistir, entre em contato conosco."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:613
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:615
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:334
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:334
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:338
 msgid "An unexpected error occurred, please try again. If the error persists, please contact us. (#67)"
 msgstr "Ocorreu um erro inesperado, tente novamente. Se o erro persistir, entre em contato conosco. (#67)"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:628
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:630
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:351
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:351
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:355
 msgid "There was an error validating the request. Please refresh the page and try again."
 msgstr "Ocorreu um erro ao validar a solicitação. Atualize a página e tente novamente."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:633
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:635
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:356
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:356
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:360
 msgid "There was an attempt to pay a cart other than approval."
 msgstr "Houve uma tentativa de pagamento de um carrinho diferente da aprovação."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:678
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:680
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:401
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:400
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:404
 msgid "Payment in %d installments of %s on PayPal."
 msgstr "Pagamento em %d parcelas de %s no PayPal."
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:402
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:401
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:405
 msgid "Cash payment on PayPal."
 msgstr "Pagamento em dinheiro no PayPal."
 
 #: includes/handlers/class-paypal-brasil-webhooks-handler.php:196
 #: includes/handlers/class-paypal-brasil-webhooks-handler.php:478
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:694
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:696
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:417
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:416
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:420
 msgid "Payment processed by PayPal. Transaction ID: <a href=\"%s\" target=\"_blank\" rel=\"noopener\">%s</a>."
 msgstr "Pagamento processado pelo PayPal. ID da transação: <a href=\"%s\" target=\"_blank\" rel=\"noopener\">%s</a>."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:704
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:706
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:427
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:426
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:998
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1184
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1269
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:430
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1018
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1217
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1314
 msgid "Payment is under review by PayPal."
 msgstr "O pagamento está em análise pelo PayPal."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:737
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:460
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:470
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1358
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:474
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1410
 msgid "A payment already exists for this order."
 msgstr "Já existe um pagamento para este pedido."
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1364
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1416
 msgid "Your payment was not approved, please try again."
 msgstr "Seu pagamento não foi aprovado, tente novamente."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:780
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:779
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:503
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:513
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:517
 msgid "There was an unknown error when trying to process the payment through PayPal. Please contact support."
 msgstr "Ocorreu um erro desconhecido ao tentar processar o pagamento através do PayPal. Entre em contato com o suporte."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:824
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:823
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:553
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:586
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1412
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:590
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1464
 msgid "The refund cannot be less than %s."
 msgstr "O reembolso não pode ser inferior a %s."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:846
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:845
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:575
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:603
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1438
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:607
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1491
 msgid "There was an error trying to make a refund."
 msgstr "Ocorreu um erro ao tentar fazer um reembolso."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:849
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:848
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:578
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:606
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1443
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:610
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1496
 msgid "It looks like you don't have a request for a refund."
 msgstr "Parece que você não tem uma solicitação de reembolso."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:505
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:510
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:503
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:508
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:604
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:609
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:632
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:637
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:636
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:641
 msgid "Order #%s performed in the store %s"
 msgstr "Pedido #%s realizado na loja %s"
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:725
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:753
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:757
 msgid "PayPal Plus payment method is not selected."
 msgstr "O método de pagamento PayPal Plus não foi selecionado."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:1124
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1081
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1113
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1117
 msgid "An unexpected error occurred, please try again. If the error persists, contact. (#56)"
 msgstr "Ocorreu um erro inesperado, tente novamente. Se o erro persistir, entre em contato. (#56)"
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1101
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1133
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1137
 #: includes/views/checkout/html-paypal-iframe-br.php:25
 #: includes/views/checkout/shortcut-checkout-fields.php:87
 #: includes/views/checkout/shortcut-checkout-fields.php:92
@@ -595,201 +593,187 @@ msgid "Name"
 msgstr "Nome"
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1106
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1138
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1142
 #: includes/views/checkout/html-paypal-iframe-br.php:30
 msgid "Last name"
 msgstr "Sobrenome"
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1116
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1148
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1152
 #: includes/views/checkout/shortcut-checkout-fields.php:99
 msgid "Address"
 msgstr "Endereço"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:198
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1121
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1126
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1153
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1158
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1157
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1162
 #: includes/views/checkout/shortcut-checkout-fields.php:111
 msgid "Country"
 msgstr "País"
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1131
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1163
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1167
 #: includes/views/checkout/shortcut-checkout-fields.php:107
 msgid "State"
 msgstr "Estado"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:203
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:205
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1136
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1168
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1172
 #: includes/views/checkout/shortcut-checkout-fields.php:115
 msgid "Zip code"
 msgstr "CEP"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:1431
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:1692
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1245
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1277
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1511
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1281
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1564
 msgid "WooCommerce"
 msgstr "WooCommerce"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:339
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:316
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1300
 msgid "PayPal - Transparent Checkout"
 msgstr "PayPal - checkout transparente"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:342
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:319
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1303
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1335
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1339
 msgid "Credit card"
 msgstr "Cartão de crédito"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:342
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:319
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1303
 msgid "Credit Card"
 msgstr "Cartão de crédito"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:43
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:52
 msgid "Add PayPal Digital Wallet Solutions to Your WooCommerce Store."
 msgstr "Adicione as soluções de carteira digital do PayPal à sua loja WooCommerce."
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:58
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:67
 msgid "PayPal Brasil - Digital Wallet"
 msgstr "PayPal Brasil - Carteira Digital"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:221
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:230
 msgid "Client (live)"
 msgstr "Client (produção)"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:225
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:234
 msgid "Client (sandbox)"
 msgstr "Client (sandbox)"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:229
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:238
 msgid "Secret (live)"
 msgstr "Secret (produção)"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:233
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:251
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:257
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:209
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:213
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:242
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:236
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:242
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:187
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:191
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:192
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:196
 msgid "Secret (sandbox)"
 msgstr "Secret (sandbox)"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:286
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:237
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:284
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:290
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:246
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:218
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:222
 msgid "Format"
 msgstr "Formato"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:290
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:241
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:250
 msgid "Rectangle"
 msgstr "Retangular"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:291
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:242
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:298
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:251
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:229
 msgid "Rounded"
 msgstr "Arredondado"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:296
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:247
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:310
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:316
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:256
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:239
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:243
 msgid "Color"
 msgstr "Cor"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:251
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:260
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:249
 msgid "Blue"
 msgstr "Azul"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:252
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:261
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:250
 msgid "Gold"
 msgstr "Dourado"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:253
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:262
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:251
 msgid "Silver"
 msgstr "Prateado"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:300
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:254
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:324
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:263
 msgid "White"
 msgstr "Branco"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:301
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:255
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:321
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:264
 msgid "Black"
 msgstr "Preto"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:278
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:287
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:384
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:388
 msgid "Prefix in the order number"
 msgstr "Prefixo no número do pedido"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:281
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:396
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:270
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:290
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:283
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:248
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:394
 msgid "Add a prefix to the order number, this is useful for identifying you when you have more than one store processing through PayPal."
 msgstr "Adicione um prefixo ao número do pedido, isso é útil para identificá-lo quando você tiver mais de uma loja processando pelo PayPal."
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:692
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:701
 msgid "There was an error creating the payment authorization."
 msgstr "Ocorreu um erro ao criar a autorização de pagamento."
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:721
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:730
 msgid "Payment Review"
 msgstr "Revisão de pagamento"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1164
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1197
 msgid "PayPal discount (%d%%)"
 msgstr "Desconto PayPal (%d%%)"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1326
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1381
 msgid "The payment method was not correctly detected. Please try again."
 msgstr "O método de pagamento não foi detectado corretamente. Por favor, tente novamente."
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1340
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1392
 msgid "An unexpected error occurred, please try again. If the error persists, please contact us. (#01)"
 msgstr "Ocorreu um erro inesperado, tente novamente. Se o erro persistir, entre em contato conosco. (#01)"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1349
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1401
 msgid "An unexpected error occurred, please try again. If the error persists, please contact us. (#12)"
 msgstr "Ocorreu um erro inesperado, tente novamente. Se o erro persistir, entre em contato conosco. (#12)"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1457
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1510
 msgid "Ready! Your PayPal account is already enabled for this payment. Review your order information and complete your purchase."
 msgstr "Preparar! Sua conta do PayPal já está habilitada para este pagamento. Revise as informações do seu pedido e conclua sua compra."
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1816
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1875
 msgid "You canceled the creation of the payment term."
 msgstr "Você cancelou a criação da condição de pagamento."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:459
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1840
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1871
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:457
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1899
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1930
 msgid "You canceled the payment."
 msgstr "Você cancelou o pagamento."
 
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:247
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:225
 msgid ""
 "Use this option to set a maximum height of the greeting card form.\n"
 "                        credit (will be considered a value in pixels). A value in pixels between 400 -\n"
@@ -799,10 +783,10 @@ msgstr ""
 "                        crédito (será considerado um valor em pixels). Um valor em pixels entre 400 -\n"
 "                        550."
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:381
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:388
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:258
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:263
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:268
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:275
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:236
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:241
 msgid ""
 "Prefix in number\n"
 "                    order"
@@ -810,13 +794,13 @@ msgstr ""
 "Prefixo em número\n"
 "                    ordem"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:422
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:292
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:309
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:270
 msgid "The logs will be saved in the path:"
 msgstr "Os logs serão salvos no caminho:"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:428
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:294
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:315
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:272
 msgid ""
 "Status\n"
 "                                                                                   of the system &gt; Logs"
@@ -824,14 +808,13 @@ msgstr ""
 "Status\n"
 "                                                                                   do sistema &gt; Logs"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:25
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:24
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:10
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:9
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:9
 msgid "Your credentials are not valid. Please check the information provided."
 msgstr "Suas credenciais não são válidas. Por favor, verifique as informações fornecidas."
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:35
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:32
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:20
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:16
 msgid "It was not possible to activate the \"Save Digital Wallet\" functionality because we verified that your PayPal account does not have permission to use this product. Contact PayPal at 0800 721 6959 and request its release."
 msgstr "Não foi possível ativar a funcionalidade \"Salvar Carteira Digital\" porque verificamos que sua conta do PayPal não tem permissão para usar este produto. Entre em contato com o PayPal pelo telefone 0800 721 6959 e solicite a liberação."
@@ -868,8 +851,8 @@ msgstr "Produção "
 msgid "Client ID (production)"
 msgstr "Client ID (produção)"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:172
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:145
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:157
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:123
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:129
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:151
 msgid "Client ID"
@@ -900,48 +883,45 @@ msgstr "Client ID (sandbox) "
 msgid " and look for the “REST API apps” section."
 msgstr " e procure a seção REST API apps."
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:223
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:187
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:208
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:165
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:170
 msgid "Secret (production)"
 msgstr "Secret (produção)"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:229
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:191
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:214
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:169
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:174
 msgid "Secret"
 msgstr "Secret"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:236
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:264
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:197
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:220
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:221
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:249
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:175
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:198
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:180
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:203
 msgid "To generate the Secret go to "
 msgstr "Para gerar o Secret acesse "
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:181
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:238
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:266
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:153
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:199
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:222
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:166
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:223
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:251
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:131
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:177
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:200
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:182
 msgid "here"
 msgstr "aqui"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:276
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:212
 msgid "Button Settings"
 msgstr "Configurações do botão"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:295
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:228
 msgid "Rectangular"
 msgstr "Retangular"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:336
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:261
 msgid "Button preview"
 msgstr "Visualização do botão"
@@ -990,8 +970,8 @@ msgstr "Permita que seus clientes criem uma conta durante o checkout"
 msgid "Only enable this feature if you have PayPal approval and if the above settings have been applied."
 msgstr "Ative esse recurso apenas se tiver a aprovação do PayPal e se as configurações acima tiverem sido aplicadas."
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:347
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:228
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:260
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:206
 #: includes/views/admin-options/admin-options-spb/admin-options-spb-template.php:378
 msgid "Advanced Settings"
 msgstr "Configurações avançadas"
@@ -1146,36 +1126,35 @@ msgstr "depende do WooCommerce versão 3.6 ou superior para funcionar! Você est
 msgid "PayPal: transaction refunded in full."
 msgstr "PayPal: transação reembolsada integralmente."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:1291
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:918
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:941
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:945
 msgid "An unexpected error occurred, please try again. If the error persists, please contact us. (#56)"
 msgstr "Ocorreu um erro inesperado, tente novamente. Se o erro persistir, entre em contato conosco. (#56)"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:339
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:316
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1300
 msgid "Transparent checkout"
 msgstr "Checkout transparente"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:181
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:190
 msgid "PayPal - Digital Wallet"
 msgstr "Paypal - carteira digital"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:184
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:193
 msgid "Digital Wallet"
 msgstr "Carteira digital"
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1059
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1080
 msgid "There was a problem verifying the fraudnet token."
 msgstr "Ocorreu um problema ao verificar o token fraudnet."
 
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1121
-#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1673
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1142
+#: includes/payment-methods/class-paypal-brasil-spb-gateway.php:1726
 msgid "Order payment #%s at %s shop"
 msgstr "Ordem de pagamento #%s na loja %s"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:46
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:41
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:31
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:19
 msgid "Unable to create webhook configurations. Try to save again."
 msgstr "Não é possível criar configurações de webhook. Tente salvar novamente."
 
@@ -1183,126 +1162,100 @@ msgstr "Não é possível criar configurações de webhook. Tente salvar novamen
 msgid "Enable settings for me"
 msgstr "Ativar configurações para mim"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:539
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:555
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:561
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:740
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:746
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:749
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:547
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:563
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:569
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:234
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:250
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:256
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:463
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:469
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:472
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:234
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:250
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:256
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:473
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:479
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:482
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:238
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:254
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:260
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:477
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:483
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:486
 msgid "Payment not approved. Please try again."
 msgstr "O pagamento não foi aprovado. Por favor, tente novamente."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:542
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:567
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:570
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:728
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:758
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:761
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:550
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:730
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:237
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:262
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:265
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:451
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:481
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:484
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:237
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:262
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:265
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:461
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:491
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:494
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:241
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:266
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:269
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:465
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:495
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:498
 msgid "Internal error."
 msgstr "Erro interno."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:558
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:743
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:566
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:253
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:466
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:253
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:476
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:257
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:480
 msgid "Try another card."
 msgstr "Tente outro cartão."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:564
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:752
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:572
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:259
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:475
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:259
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:485
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:263
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:489
 msgid "Session expired. Please try again."
 msgstr "A Sessão expirou. Por favor, tente novamente."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:734
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:457
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:467
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:471
 msgid "An unexpected error occurred, please try again. If the error persists, please contact us."
 msgstr "Ocorreu um erro inesperado, tente novamente. Se o erro persistir, entre em contato conosco."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:536
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:755
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:544
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:231
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:478
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:231
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:488
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:235
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:492
 msgid "Check the entered data"
 msgstr "Verificar os dados inseridos"
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:487
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:497
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:501
 msgid "Payment not approved. Please try again or select another payment method."
 msgstr "Pagamento não aprovado. Por favor tente novamente ou selecione outro método de pagamento."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:452
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:450
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1202
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1234
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1238
 msgid "Check the entered data."
 msgstr "Verificar os dados inseridos."
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:7
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:7
-msgid ""
-"<p>Dear customer, <strong>PayPal Transparent Checkout</strong> only works in production upon\n"
-"                commercial release, if you have already received approval, please ignore this message. Otherwise,\n"
-"                call our sales center (0800 047 4482) and request it right now.</p>\n"
-"            <p>If you are seeing the \"prohibited\" sign during checkout, your account is not cleared for\n"
-"                usage.</p>"
-msgstr ""
-"<p>Prezado cliente, o <strong>Checkout Transparente do PayPal</strong> só funciona em produção mediante liberação\n"
-"                 comercial, caso você já tenha recebido a aprovação, ignore esta mensagem. Caso o contrário,\n"
-"                 ligue na nossa central de vendas (0800 721 6959) e solicite agora mesmo.</p>\n"
-"            <p>Se você está visualizando o sinal de \"proibido\" durante o checkout, a sua conta não está liberada para\n"
-"                 utilização.</p>"
-
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:63
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:64
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:53
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:54
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:48
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:49
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:31
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:32
 msgid "PayPal Brazil"
 msgstr "Paypal Brasil"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:116
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:102
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:101
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:80
 msgid "Example: Installments up to 12x"
 msgstr "Exemplo: Parcelado em até 12x"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:146
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:127
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:131
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:105
 msgid "Production"
 msgstr "Produção"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:153
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:130
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:138
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:108
 msgid ""
 "Use this option to toggle between Sandbox and Production modes. Sandbox is\n"
 "                        used for testing and production for actual purchases."
@@ -1310,8 +1263,8 @@ msgstr ""
 "Utilize esta opção para alternar entre os modos Sandbox e Produção. Sandbox é \n"
 "                        utilizado para testes e Produção para compras reais."
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:165
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:140
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:150
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:118
 msgid ""
 "Client ID\n"
 "                    (production)"
@@ -1319,26 +1272,26 @@ msgstr ""
 "Client ID\n"
 "                    (produção)"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:179
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:208
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:151
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:175
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:164
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:193
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:129
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:153
 msgid "To generate the Client ID go to"
 msgstr "Para gerar o Client ID acesse"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:183
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:212
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:240
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:268
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:154
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:168
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:197
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:225
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:253
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:132
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:156
 #: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:178
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:200
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:223
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:201
 msgid "and get it from the “REST API APPS” section."
 msgstr "e procure pela seção “REST API apps."
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:194
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:163
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:179
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:141
 msgid ""
 " Client ID\n"
 "                    (sandbox)"
@@ -1346,60 +1299,60 @@ msgstr ""
 " Client ID\n"
 "                    (sandbox)"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:201
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:168
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:186
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:146
 msgid " Client ID"
 msgstr " Client ID"
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:210
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:177
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:195
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:155
 msgid " here "
 msgstr " aqui  "
 
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:118
-#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:103
+#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:103
+#: includes/views/admin-options/admin-options-plus/admin-options-plus-template.php:81
 msgid "Will be displayed at checkout: Credit Card "
 msgstr "Será exibido no checkout: Cartão de Crédito "
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:669
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:671
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:392
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:391
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:395
 msgid "Credit card - Paypal"
 msgstr "Cartão de crédito - Paypal"
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1141
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1173
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1177
 msgid "Email"
 msgstr "Email"
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1149
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1181
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1185
 msgid "Number"
 msgstr "Número"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:211
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:213
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1153
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1185
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1189
 msgid "Person type"
 msgstr "Tipo de pessoa"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:215
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:217
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1157
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1189
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1193
 msgid "CPF"
 msgstr "CPF"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:219
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:221
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1161
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1193
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1197
 msgid "CNPJ"
 msgstr "CNPJ"
 
-#: includes/api/class-paypal-orders-api-v2.php:224
+#: includes/api/class-paypal-orders-api-v2.php:231
 msgid "Unable to create order."
 msgstr "Não foi possível criar o pedido."
 
-#: includes/api/class-paypal-orders-api-v2.php:391
+#: includes/api/class-paypal-orders-api-v2.php:398
 msgid "Unable to update order."
 msgstr "Não foi possível atualizar o pedido."
 
@@ -1412,46 +1365,28 @@ msgstr "Banner atualizado"
 msgid "Store order %s - carrinho"
 msgstr "Pedido da loja %s - carrinho"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:181
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:183
 msgid "Por favor, preencha o campo personalizado."
 msgstr "Por favor, preencha o campo personalizado."
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:1111
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1143
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1147
 msgid "Phone"
 msgstr "Telefone"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:313
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:355
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:361
-msgid "Button height"
-msgstr "Tamanho do botão"
-
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:317
-msgid "Use this option to define a maximum height of the credit card button (a value in pixels will be considered). A value in pixels between 25 - 55 will be accepted."
-msgstr "Utilize esta opção para definir uma altura máxima do botão do cartão de crédito (será considerado um valor em pixels). Será aceito um valor em pixels entre 25 - 55."
-
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:668
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:670
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:391
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:390
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:394
 msgid "Credit card (%dx de %s) - PayPal"
 msgstr "Cartão de crédito (%dx de %s) - PayPal"
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:679
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:681
 msgid "Credit card payment on PayPal."
 msgstr "Pagamento com cartão de crédito no PayPal."
 
 #: includes/payment-methods/class-paypal-brasil-orders-gateway.php:52
 msgid "PayPal Brasil - Transparent Checkout orders v2"
 msgstr "PayPal Brasil - Transparent Checkout orders v2"
-
-#: includes/views/admin-options/admin-options-bcdc/admin-options-bcdc-template.php:369
-msgid ""
-"Use this option to set a maximum height of the greeting credit card button (will be considered a value in pixels). A value in pixels between 25 -\n"
-"                        55."
-msgstr ""
-"Utilize esta opção para definir uma altura máxima do botão de saudação do cartão de crédito (será considerado um valor em pixels). Um valor em pixels entre 25 -\n"
-"                        55."
 
 #: includes/handlers/api/class-paypal-brasil-api-ppp-activate.php:43
 #: includes/handlers/api/class-paypal-brasil-api-ppp-activate.php:51
@@ -1467,15 +1402,40 @@ msgstr "BCDC - Payment gateway updated"
 msgid "PayPal payment method is not selected."
 msgstr "O método de pagamento PayPal não está selecionado."
 
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:1110
-#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:1274
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:1139
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:1334
+#: includes/payment-methods/class-paypal-brasil-bcdc-gateway.php:1521
 msgid "Payment not allowed in this currency. Contact store support."
 msgstr "Pagamento não permitido para esta moeda utilizada. Entre em contato com o suporte da loja."
 
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1332
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1336
 msgid "PayPal - Transparent Checkout (PPP)"
 msgstr "PayPal - Checkout transparente (PPP)"
 
-#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1332
+#: includes/payment-methods/class-paypal-brasil-plus-gateway.php:1336
 msgid "Transparent checkout (PPP)"
 msgstr "Checkout transparente (PPP)"
+
+#: includes/handlers/api/class-paypal-brasil-api-logger-handler.php:82
+msgid "gateway_id"
+msgstr "gateway_id"
+
+#: includes/handlers/api/class-paypal-brasil-api-logger-handler.php:88
+msgid "message"
+msgstr "message"
+
+#: includes/handlers/api/class-paypal-brasil-api-logger-handler.php:94
+msgid "level"
+msgstr "level"
+
+#: includes/handlers/api/class-paypal-brasil-api-logger-handler.php:100
+msgid "tags"
+msgstr "tags"
+
+#: includes/handlers/api/class-paypal-brasil-api-logger-handler.php:104
+msgid "extra"
+msgstr "extra"
+
+#: includes/handlers/api/class-paypal-brasil-api-logger-handler.php:129
+msgid "Log created successfully."
+msgstr "Log created successfully."

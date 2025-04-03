@@ -70,8 +70,6 @@ class WC_PAYPAL_LOGGER
 					}
 				}
 
-				$log = $logData;
-
 
 				$client->post("api/v2/logs", [
 					'headers' => [
