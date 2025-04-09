@@ -464,6 +464,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 					'cancel_message' => $cancel_message,
 				)
 			);
+
 		}
 
 		wp_enqueue_style($this->id . '_style', plugins_url('assets/dist/css/frontend-bcdc.css', PAYPAL_PAYMENTS_MAIN_FILE), array(), PAYPAL_PAYMENTS_VERSION, 'all');
@@ -855,7 +856,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 	 * @return array
 	 * @throws Exception
 	 */
-	public function get_posted_data()
+	public function process_posted_data(array $data)
 	{
 
 		$checkout = WC()->checkout();
@@ -983,6 +984,129 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 				$billing_data['payment_id'] = $payment['id'];
 			}
 		}
+		return $billing_data;
+
+	}
+
+		/**
+	 * Get the posted data in the checkout.
+	 *
+	 * @return array
+	 * @throws Exception
+	 */
+	public function get_posted_data()
+	{
+
+		$checkout = WC()->checkout();
+		$order_id = get_query_var('order-pay');
+		$order = $order_id ? new WC_Order($order_id) : null;
+
+		// Valores padrão
+		$defaults = [
+			'first_name' => '',
+			'last_name' => '',
+			'person_type' => '',
+			'cpf' => '',
+			'cnpj' => '',
+			'phone' => '',
+			'email' => '',
+			'postcode' => '',
+			'address' => '',
+			'number' => '',
+			'address_2' => '',
+			'neighborhood' => '',
+			'city' => '',
+			'state' => '',
+			'country' => '',
+			'approval_url' => '',
+			'payment_id' => '',
+			'payer_id' => '',
+			'dummy' => false,
+			'invalid' => [],
+			'wc-bcdc-brasil-selected' => false
+		];
+
+		// Verifica se os dados estão no objeto $order
+		if ($order) {
+			$billing_data = [
+				'postcode' => $order->get_billing_postcode() ?? $order->get_shipping_postcode(),
+				'address' => $order->get_billing_address_1() ?? $order->get_shipping_address_1(),
+				'address_2' => $order->get_billing_address_2() ?? $order->get_shipping_address_2(),
+				'city' => $order->get_billing_city()  ?? $order->get_shipping_city(),
+				'state' => $order->get_billing_state() ?? $order->get_shipping_state(),
+				'country' => $order->get_billing_country() ?? $order->get_shipping_country(),
+				'neighborhood' => $order->get_meta('_billing_neighborhood',true,"view"),
+				'number' => $order->get_meta('_billing_number',true,"view"),
+				'first_name' => $order->get_billing_first_name()  ?? $order->get_shipping_first_name(),
+				'last_name' => $order->get_billing_last_name()  ?? $order->get_shipping_last_name(),
+				'person_type' => $order->get_meta('_billing_persontype',true,"view"),
+				'cpf' => $order->get_meta('_billing_cpf',true,"view"),
+				'cnpj' => $order->get_meta('_billing_cnpj',true,"view"),
+				'phone' => $order->get_meta('_billing_cellphone',true,"view") ?: $order->get_billing_phone(),
+				'email' => $order->get_billing_email(),
+			];
+		} else {
+			// Se não houver o order, busca dados do checkout ou do $_POST['post_data']
+			$post_data = [];
+			if (isset($_POST['post_data'])) {
+				parse_str($_POST['post_data'], $post_data);
+			}
+
+			$get_field = function ($key, $default = '') use ($checkout, $post_data) {
+				// Tenta obter o valor do checkout ou de post_data
+				return $checkout->get_value($key) ?: ($post_data[$key] ?? $default);
+			};
+
+			$billing_data = [
+				'first_name' => $get_field('billing_first_name'),
+				'last_name' => $get_field('billing_last_name'),
+				'person_type' => $get_field('billing_persontype'),
+				'cpf' => $get_field('billing_cpf'),
+				'cnpj' => $get_field('billing_cnpj'),
+				'phone' => $get_field('billing_cellphone', $get_field('billing_phone')),
+				'email' => $get_field('billing_email'),
+				'postcode' => $get_field('billing_postcode'),
+				'address' => $get_field('billing_address_1'),
+				'address_2' => $get_field('billing_address_2'),
+				'city' => $get_field('billing_city'),
+				'state' => $get_field('billing_state'),
+				'country' => $get_field('billing_country'),
+				'neighborhood' => $get_field('billing_neighborhood'),
+				'number' => $get_field('billing_number'),
+			];
+
+
+			WC_PAYPAL_LOGGER::log("Checkout data has been captured", $this->id, 'info');
+		}
+
+		// Adiciona dados específicos do plugin "Brazilian Market on WooCommerce"
+		if (paypal_brasil_needs_cpf()) {
+			$wcbcf_settings = get_option('wcbcf_settings');
+			if ($wcbcf_settings && ($wcbcf_settings['person_type'] == '2' || $wcbcf_settings['person_type'] == '3')) {
+				$billing_data['person_type'] = $wcbcf_settings['person_type'] == '2' ? '1' : '2';
+				$billing_data['person_type_default'] = true;
+			}
+		}
+
+		// Usa valores padrão e aplica filtros
+		$billing_data = wp_parse_args($billing_data, $defaults);
+		$billing_data = apply_filters('wc_bcdc_brasil_user_data', $billing_data);
+
+		$required_data = array('first_name', 'last_name', 'person_type');
+		$required_data[] = $billing_data['person_type'] == '1' ? 'cpf' : 'cnpj';
+
+		$can_create_payment = "true";
+		$missing_fields = [];
+
+		foreach ($required_data as $field) {
+			if (!isset($billing_data[$field]) || empty($billing_data[$field])) {
+				$missing_fields[] = $field;
+			}
+		}
+
+		$billing_data['wc-bcdc-brasil-selected'] = isset($post_data) ? filter_var($post_data['wc-bcdc-brasil-selected'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : false;
+		$billing_data['can_create_payment'] = $can_create_payment;
+
 		return $billing_data;
 
 	}

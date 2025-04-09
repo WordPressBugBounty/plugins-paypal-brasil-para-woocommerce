@@ -1,8 +1,14 @@
+/*! ../Utils */
+
 /*! ../frontend-sdk/frontend-sdk-bcdc */
 
 /*! ../frontend-shared */
 
 /*! ./frontend-bcdc-api */
+
+/*!*******************************!*\
+  !*** ./src/frontend/Utils.ts ***!
+  \*******************************/
 
 /*!*****************************************!*\
   !*** ./src/frontend/frontend-shared.ts ***!

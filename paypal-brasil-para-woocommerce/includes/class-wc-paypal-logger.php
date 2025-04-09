@@ -78,7 +78,7 @@ class WC_PAYPAL_LOGGER
 						'DD-API-KEY' => $datadog_api_key
 					],
 					'json' => $logData,
-				]);
+				]); 
 			} catch (\Throwable $th) {
 				return;
 			}

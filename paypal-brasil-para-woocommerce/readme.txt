@@ -4,7 +4,7 @@ Contributors: suporteppbr, bycoders
 Tags: paypal, woocommerce, checkout transparente, paypal brasil, ecommerce
 Requires at least: 4.4
 Tested up to: 6.7.2
-Stable tag: 1.6.7
+Stable tag: 1.6.8
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI:  [http://www.gnu.org/licenses/gpl-2.0.html](http://www.gnu.org/licenses/gpl-2.0.html)
@@ -89,6 +89,9 @@ If you have any questions or difficulties using the plugin, access the Support s
 5. PayPal account login screen.
 
 == Changelog ==
+
+= 1.6.8 =
+* Improvement: Improved create order from transparent checkout.
 
 = 1.6.7 =
 * Fixed: Fix in the rendering of the digital wallet;
@@ -273,10 +276,8 @@ If you have any questions or difficulties using the plugin, access the Support s
 
 == Upgrade Notice ==
 
-= 1.6.7 =
-* Fixed: Fix in the rendering of the digital wallet;
-* Fixed: Fix of BCDC and PPP onboarding.
-* Improvement: BCDC error return.
+= 1.6.8 =
+* Improvement: Improved create order from transparent checkout.
 
 == Screenshots ==
 
