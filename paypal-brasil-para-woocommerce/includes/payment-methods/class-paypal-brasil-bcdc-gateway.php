@@ -429,6 +429,28 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 		if (is_checkout() && !get_query_var('order-received')) {
 			
+			// 🔹 Adiciona SDK oficial do PayPal (deve vir antes de frontend-bcdc.js)
+			$client_id = $this->get_client_id();
+			$currency = $this->get_woocommerce_currency();
+			$components = 'hosted-fields,buttons';
+			$locale = get_locale();
+
+			$paypal_sdk_url = sprintf(
+				'https://www.paypal.com/sdk/js?client-id=%s&components=%s&currency=%s&locale=%s',
+				esc_attr($client_id),
+				esc_attr($components),
+				esc_attr($currency),
+				esc_attr($locale)
+			);
+
+			wp_enqueue_script(
+				'paypal-sdk',
+				$paypal_sdk_url,
+				array(), // sem dependências
+				null,    // não precisa de versão
+				true     // carregar no footer
+			);
+			
 			$enqueues[] = array(
 				'paypal-brasil-bcdc',
 				plugins_url('assets/dist/js/frontend-bcdc.js', PAYPAL_PAYMENTS_MAIN_FILE),

@@ -5,6 +5,10 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
+if (! class_exists('WC_PAYPAL_LOGGER')) {
+	require_once plugin_dir_path(__FILE__) . '../class-wc-paypal-logger.php';
+}
+
 /**
  * Class PayPal_Brasil_Orders_api_V2.
  * @property string access_token_transient_key
@@ -290,11 +294,10 @@ class PayPal_Brasil_Orders_api_V2
 		// Add bn code if exits.
 		if ($bn_code_key && array_key_exists($bn_code_key, $this->bn_code)) {
 			$headers['PayPal-Partner-Attribution-Id'] = $this->bn_code[$bn_code_key];
-			
 		}
 
 		// Get response.
-		$response = $this->do_request('CAPTURE_ORDER', $url, 'POST',array(), $headers);
+		$response = $this->do_request('CAPTURE_ORDER', $url, 'POST', array(), $headers);
 		$response_body = json_decode(wp_remote_retrieve_body($response), true);
 
 		// Check if is WP_Error
@@ -339,7 +342,7 @@ class PayPal_Brasil_Orders_api_V2
 		}
 
 		// Get response.
-		$response = $this->do_request('CAPTURE_ORDER', $url, 'POST', array(),$headers);
+		$response = $this->do_request('CAPTURE_ORDER', $url, 'POST', array(), $headers);
 		$response_body = json_decode(wp_remote_retrieve_body($response), true);
 
 		// Check if is WP_Error
@@ -748,13 +751,17 @@ class PayPal_Brasil_Orders_api_V2
 	 */
 	protected function do_request($name, $url, $method = 'POST', $data = array(), $headers = array(), $log = true)
 	{
-
+		// valida data se for um array
+		$dataArray = is_array($data) ? $data : array();
+		$gateway_id = $this->gateway->id ?? $this->gateway['id'];
 		// Default headers.
 		$headers = wp_parse_args(
 			array(
 				'Accept-Language' => get_locale(), // use default WP locale.
 				'Content-Type' => 'application/json', // send as json for default.
-			), $headers);
+			),
+			$headers
+		);
 
 		// Add access token if needed.
 		// In case is access token request, the authorization already exists, so no way
@@ -768,7 +775,6 @@ class PayPal_Brasil_Orders_api_V2
 			$headers['locale'] = get_locale();
 			$headers['PayPal-Partner-Attribution-Id'] = $this->bn_code['default'];
 			$headers['user_action'] = 'CONTINUE';
-			$headers['shipping_preference'] = 'NO_SHIPPING';
 		}
 
 		$params = array(
@@ -789,13 +795,16 @@ class PayPal_Brasil_Orders_api_V2
 		// Only log response when $log exists.
 		if (isset($params['body'])) {
 			$this->gateway->log(__("[{$name}] Making request ({$method}) for {$url}:\n" . $data . "\n", "paypal-brasil-para-woocommerce"));
+			WC_PAYPAL_LOGGER::log($name, $gateway_id, 'info', $dataArray);
 		} else {
 			$this->gateway->log(__("[{$name}] Making request ({$method}) for {$url}\n ", "paypal-brasil-para-woocommerce"));
+			WC_PAYPAL_LOGGER::log($name, $gateway_id, 'info', $dataArray);
 		}
 
 		$request = wp_safe_remote_request($url, $params);
 		if (is_wp_error($request)) {
 			$this->gateway->log(__("[{$name}] HTTP error when making the request ({$method}) for {$url}\n", "paypal-brasil-para-woocommerce"));
+			WC_PAYPAL_LOGGER::log($name, $gateway_id, 'error', $dataArray);
 		} else {
 			// Only log response when $log exists.
 			$body = json_decode(wp_remote_retrieve_body($request), true);
@@ -812,8 +821,10 @@ class PayPal_Brasil_Orders_api_V2
 					JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
 				) . "\n");
 				$this->gateway->log(__("[{$name}] Request response ({$method}) for {$url} complete:\n" . $raw_response . "\n", "paypal-brasil-para-woocommerce"));
+				WC_PAYPAL_LOGGER::log($name, $gateway_id, 'info', $dataArray);
 			} else {
 				$this->gateway->log(__("[{$name}] Request response ({$method}) for {$url} with status code {$status_code} hidden for security reasons.\n", "paypal-brasil-para-woocommerce"));
+				WC_PAYPAL_LOGGER::log($name, $gateway_id, 'error', $dataArray);
 			}
 		}
 
