@@ -21,27 +21,32 @@ class WC_PAYPAL_LOGGER
 	 */
 	public static function log($message, $gateway_id, string $level = 'info', array $extra = array(), array $tags = array())
 	{
-		if (!class_exists('WC_Logger')) {
-			return;
-		}
-
 		$options = get_option("woocommerce_{$gateway_id}_settings");
 
-		$wc_logger = wc_get_logger();
-		$context = array('source' => $gateway_id);
+		if (class_exists('WC_Logger')) {
+			$wc_logger = wc_get_logger();
+			$context = array('source' => $gateway_id);
 
-		$log_message = PHP_EOL . '==== Paypal Brasil para woocommerce Version: ' . PAYPAL_PAYMENTS_VERSION . ' ====' . PHP_EOL;
-		$log_message .= PHP_EOL;
-		$log_message .= '=== Start Log ===' . PHP_EOL;
-		$log_message .= $message . PHP_EOL;
-		$log_message .= '=== End Log ===' . PHP_EOL;
-		$log_message .= PHP_EOL;
+			$log_message = PHP_EOL . '==== Paypal Brasil para woocommerce Version: ' . PAYPAL_PAYMENTS_VERSION . ' ====' . PHP_EOL;
+			$log_message .= PHP_EOL;
+			$log_message .= '=== Start Log ===' . PHP_EOL;
+			$log_message .= $message . PHP_EOL;
+			$log_message .= '=== End Log ===' . PHP_EOL;
+			$log_message .= PHP_EOL;
 
-		if (!empty($options) && isset($options['debug']) && $options['debug'] === 'yes') {
-			$wc_logger->debug($log_message, $context);
+			if (!empty($options) && isset($options['debug']) && $options['debug'] === 'yes') {
+				$wc_logger->debug($log_message, $context);
+			}
 		}
 
-		// Enviar para o Datadog somente se for um log de erro ou critico, ou contiver palavras específicas
+		self::sendToDatadog($message, $gateway_id, $level, $extra, $tags);
+	}
+
+	/**
+	 * Envia log ao Datadog independentemente da flag debug do gateway.
+	 */
+	private static function sendToDatadog($message, $gateway_id, string $level, array $extra, array $tags): void
+	{
 		$datadog_api_key = self::getDatadogApiKey();
 
 		try {
@@ -51,31 +56,27 @@ class WC_PAYPAL_LOGGER
 
 			$obj = new self();
 
-			// Dados do log em JSON
 			$logData = [
-				"ddsource" => "paypal-woocommerce",
-				"ddtags" => "site_name:" . get_bloginfo("name") . "," . "plugin_version:" . PAYPAL_PAYMENTS_VERSION,
-				"gateway" => $gateway_id,
-				"message" => $message,
-				"service" => "paypal-woocommerce",
-				"status" => $level,
-				"hostname" => home_url(),
-				"version" => PAYPAL_PAYMENTS_VERSION,
-				"body" => array($obj->filterData($extra))
+				'ddsource' => 'paypal-woocommerce',
+				'ddtags' => 'site_name:' . get_bloginfo('name') . ',plugin_version:' . PAYPAL_PAYMENTS_VERSION,
+				'gateway' => $gateway_id,
+				'message' => $message,
+				'service' => 'paypal-woocommerce',
+				'status' => $level,
+				'hostname' => home_url(),
+				'version' => PAYPAL_PAYMENTS_VERSION,
+				'body' => array($obj->filterData($extra)),
 			];
 
-			if (isset($tags)) {
-				foreach ($tags as $tag) {
-					$logData['ddtags'] = $logData['ddtags'] . ',' . $tag;
-				}
+			foreach ($tags as $tag) {
+				$logData['ddtags'] .= ',' . $tag;
 			}
 
-
-			$client->post("api/v2/logs", [
+			$client->post('api/v2/logs', [
 				'headers' => [
 					'Content-Type' => 'application/json',
 					'Accept' => 'application/json',
-					'DD-API-KEY' => $datadog_api_key
+					'DD-API-KEY' => $datadog_api_key,
 				],
 				'json' => $logData,
 			]);

@@ -11,6 +11,8 @@ if ( ! class_exists( 'WC_PAYPAL_LOGGER' ) ) {
     require_once plugin_dir_path( __FILE__ ) . '../class-wc-paypal-logger.php';
 }
 
+require_once plugin_dir_path( __FILE__ ) . '../helpers/class-bcdc-billing-data-merger.php';
+
 use Automattic\WooCommerce\Utilities\OrderUtil;
 
 /**
@@ -975,6 +977,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		// Usa valores padrão e aplica filtros
 		$billing_data = wp_parse_args($billing_data, $defaults);
 		$billing_data = apply_filters('wc_bcdc_brasil_user_data', $billing_data);
+		// Corpo JSON do createOrder deve prevalecer sobre sessão / filtro.
+		$billing_data = BCDC_Billing_Data_Merger::merge_from_api_request( $billing_data, $data );
 
 		$required_data = array('first_name', 'last_name', 'person_type');
 		$required_data[] = $billing_data['person_type'] == '1' ? 'cpf' : 'cnpj';
@@ -1010,7 +1014,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 	}
 
-		/**
+	/**
 	 * Get the posted data in the checkout.
 	 *
 	 * @return array
@@ -1220,7 +1224,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 						'shipping' => array(
 							'type' => 'PICKUP_IN_STORE',
 							'name' => array(
-								'full_name' => $data['first_name'] . " " . $data['last_name'],
+								'full_name' => $this->get_pickup_store_full_name(),
 							),
 						)
 					);
@@ -1398,7 +1402,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 						'shipping' => array(
 							'type' => 'PICKUP_IN_STORE',
 							'name' => array(
-								'full_name' => $data['first_name'] . " " . $data['last_name'],
+								'full_name' => $this->get_pickup_store_full_name(),
 							),
 						)
 					);
@@ -1601,7 +1605,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 						'shipping' => array(
 							'type' => 'PICKUP_IN_STORE',
 							'name' => array(
-								'full_name' => $data['first_name'] . " " . $data['last_name'],
+								'full_name' => $this->get_pickup_store_full_name(),
 							)
 						)
 					);
@@ -1708,6 +1712,15 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		return !self::$instance;
 	}
 
+
+	/**
+	 * Nome exigido pelo PayPal para retirada na loja (prefixo S2S = Ship To Store).
+	 *
+	 * @return string
+	 */
+	private function get_pickup_store_full_name() {
+		return 'S2S ' . get_bloginfo( 'name' );
+	}
 
 	public function get_payer_address($data)
 	{
