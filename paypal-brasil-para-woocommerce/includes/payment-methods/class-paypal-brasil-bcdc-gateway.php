@@ -980,6 +980,12 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		// Corpo JSON do createOrder deve prevalecer sobre sessão / filtro.
 		$billing_data = BCDC_Billing_Data_Merger::merge_from_api_request( $billing_data, $data );
 
+		// Checkouts sem o campo billing_persontype (ex.: FunnelKit) não enviam person_type.
+		// Nesses casos, considera pessoa física (CPF) como padrão.
+		if (empty($billing_data['person_type'])) {
+			$billing_data['person_type'] = '1';
+		}
+
 		$required_data = array('first_name', 'last_name', 'person_type');
 		$required_data[] = $billing_data['person_type'] == '1' ? 'cpf' : 'cnpj';
 

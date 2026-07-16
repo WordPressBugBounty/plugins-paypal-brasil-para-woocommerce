@@ -68,7 +68,7 @@ class PayPal_Brasil_API_Bcdc_Checkout_Handler extends PayPal_Brasil_API_Handler
 			),
 			array(
 				'name' => __('address', "paypal-brasil-para-woocommerce"),
-				'key' => 'address_line_1',
+				'key' => 'address',
 				'sanitize' => 'sanitize_text_field',
 				//'validation' => array($this, 'required_text'),
 			),
@@ -80,7 +80,7 @@ class PayPal_Brasil_API_Bcdc_Checkout_Handler extends PayPal_Brasil_API_Handler
 			),
 			array(
 				'name' => __('complement', "paypal-brasil-para-woocommerce"),
-				'key' => 'address_line_2',
+				'key' => 'address_2',
 				'sanitize' => 'sanitize_text_field',
 			),
 			array(

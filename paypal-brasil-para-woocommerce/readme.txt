@@ -4,7 +4,7 @@ Contributors: suporteppbr, bycoders
 Tags: paypal, woocommerce, checkout transparente, paypal brasil, ecommerce
 Requires at least: 4.4
 Tested up to: 7.0.0
-Stable tag: 1.7.1
+Stable tag: 1.7.2
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI:  [http://www.gnu.org/licenses/gpl-2.0.html](http://www.gnu.org/licenses/gpl-2.0.html)
@@ -89,6 +89,9 @@ If you have any questions or difficulties using the plugin, access the Support s
 5. PayPal account login screen.
 
 == Changelog ==
+
+= 1.7.2 =
+* Fixed: BCDC checkout address and order creation.
 
 = 1.7.1 =
 * Fixed: BCDC checkout address and order creation.
@@ -289,11 +292,8 @@ If you have any questions or difficulties using the plugin, access the Support s
 
 == Upgrade Notice ==
 
-= 1.7.1 =
+= 1.7.2 =
 * Fixed: BCDC checkout address and order creation.
-* Fixed: local pickup shipping address.
-* Fixed: plugin logging.
-* Added support for WooCommerce 10.9.1 and WordPress 7.0.
 
 == Screenshots ==
 
