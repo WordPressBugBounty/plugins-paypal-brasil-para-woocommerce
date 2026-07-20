@@ -4,7 +4,7 @@ Contributors: suporteppbr, bycoders
 Tags: paypal, woocommerce, checkout transparente, paypal brasil, ecommerce
 Requires at least: 4.4
 Tested up to: 7.0.0
-Stable tag: 1.7.2
+Stable tag: 1.7.3
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI:  [http://www.gnu.org/licenses/gpl-2.0.html](http://www.gnu.org/licenses/gpl-2.0.html)
@@ -90,13 +90,21 @@ If you have any questions or difficulties using the plugin, access the Support s
 
 == Changelog ==
 
+= 1.7.3 =
+* Improvement: BCDC checkout and order creation.
+* Improvement: address handling compatibility.
+
 = 1.7.2 =
-* Fixed: BCDC checkout address and order creation.
+* Fixed: BCDC checkout address and order creation (FunnelKit / custom checkouts).
+* Fixed: default person_type (CPF) when billing_persontype is missing.
+* Fixed: recreate PayPal order when checkout address changes.
 
 = 1.7.1 =
+* Fixed payment method handler.
 * Fixed: BCDC checkout address and order creation.
 * Fixed: local pickup shipping address.
 * Fixed: plugin logging.
+* Fixed: INVALID_PICKUP_ADDRESS error when using local pickup shipping (S2S prefix in store name).
 * Added support for WooCommerce 10.9.1 and WordPress 7.0.
 
 = 1.7.0 =
@@ -292,8 +300,9 @@ If you have any questions or difficulties using the plugin, access the Support s
 
 == Upgrade Notice ==
 
-= 1.7.2 =
-* Fixed: BCDC checkout address and order creation.
+= 1.7.3 =
+* Improvement: BCDC checkout and order creation.
+* Improvement: address handling compatibility.
 
 == Screenshots ==
 

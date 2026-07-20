@@ -73,7 +73,7 @@ class PayPal_Brasil_API_Bcdc_Activate extends PayPal_Brasil_API_Handler
         $ch = curl_init();
 
         // Definir as opções da requisição cURL
-        curl_setopt($ch, CURLOPT_URL, 'https://paypalpcpnuvem.com/verify');
+        curl_setopt($ch, CURLOPT_URL, PAYPAL_BRASIL_PCP_API_VERIFY_URL);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));

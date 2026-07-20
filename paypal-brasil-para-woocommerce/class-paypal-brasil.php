@@ -79,8 +79,11 @@ class PayPal_Brasil
 		$allowed_gateways = array(
 			'PayPal_Brasil_SPB_Gateway',
 			'Paypal_Brasil_BCDC_Gateway',
-			'PayPal_Brasil_Plus_Gateway'
 		);
+
+		if ( ! paypal_brasil_is_pplus_retired() ) {
+			$allowed_gateways[] = 'PayPal_Brasil_Plus_Gateway';
+		}
 
 		foreach ($load_gateways as $key => $gateway) {
 			if (!in_array($gateway, $allowed_gateways)) {
@@ -136,11 +139,12 @@ class PayPal_Brasil
 	 */
 	public function add_payment_methods($methods)
 	{
-		
-		//$activatePPlus = get_option('active_payment_ppp');
 		$methods[] = 'PayPal_Brasil_SPB_Gateway';
 		$methods[] = 'Paypal_Brasil_BCDC_Gateway';
-		$methods[] = 'PayPal_Brasil_Plus_Gateway';
+
+		if ( ! paypal_brasil_is_pplus_retired() ) {
+			$methods[] = 'PayPal_Brasil_Plus_Gateway';
+		}
 
 		return $methods;
 	}
@@ -234,9 +238,7 @@ class PayPal_Brasil
 	 */
 	public function paypal_brazil_notice_update_bcdc()
 	{
-		$is_activated = get_option('active_banner_notification_bcdc');
-		$message_notification = get_option("message_banner_notification_bcdc");
-		if(isset($is_activated) && $is_activated){
+		if ( paypal_brasil_is_banner_notification_active() ) {
 			include dirname(__FILE__) . '/includes/views/notices/banner-notification.php';
 			wp_enqueue_style('banner_paypal_brasil_gateway_style', plugins_url('assets/dist/css/banner-notice.css', PAYPAL_PAYMENTS_MAIN_FILE), array(), PAYPAL_PAYMENTS_VERSION, 'all');
 		}

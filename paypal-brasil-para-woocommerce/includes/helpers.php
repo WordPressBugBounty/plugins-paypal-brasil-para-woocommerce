@@ -298,6 +298,7 @@ function paypal_brasil_protect_metadata( $protected, $meta_key ) {
 		'wc_ppp_brasil_sale_id',
 		'wc_ppp_brasil_sandbox',
 		'wc_bcdc_brasil_sale_id',
+		'wc_bcdc_brasil_capture_id',
 		'wc_bcdc_brasil_sale',
 		'wc_bcdc_brasil_sandbox',
 		'wc_bcdc_brasil_installments',
@@ -357,4 +358,29 @@ function paypal_brasil_unique_id() {
 
 function paypal_format_amount($amount) {
 	return number_format($amount, 2, '.', '');
+}
+
+/**
+ * Check if PayPal Plus was permanently removed from store configuration.
+ *
+ * @return bool
+ */
+function paypal_brasil_is_pplus_retired() {
+	return (bool) get_option( 'paypal_brasil_pplus_retired', false );
+}
+
+/**
+ * Check if the BCDC migration banner should be displayed in admin.
+ * Defaults to active when the option has never been set.
+ *
+ * @return bool
+ */
+function paypal_brasil_is_banner_notification_active() {
+	$active = get_option( 'active_banner_notification_bcdc', 'default' );
+
+	if ( 'default' === $active ) {
+		return true;
+	}
+
+	return wc_string_to_bool( $active );
 }

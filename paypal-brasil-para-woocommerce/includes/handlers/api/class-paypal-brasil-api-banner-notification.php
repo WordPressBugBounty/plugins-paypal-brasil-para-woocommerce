@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class PayPal_Brasil_API_Bcdc_Notification extends PayPal_Brasil_API_Handler
+class PayPal_Brasil_API_Banner_Notification extends PayPal_Brasil_API_Handler
 {
 
     public function __construct()
@@ -14,7 +14,7 @@ class PayPal_Brasil_API_Bcdc_Notification extends PayPal_Brasil_API_Handler
 
     public function add_handlers($handlers)
     {
-        $handlers['bcdc_notification_update'] = array(
+        $handlers['banner_notification_update'] = array(
             'callback' => array($this, 'handle'),
             'method' => 'POST',
         );
@@ -23,7 +23,7 @@ class PayPal_Brasil_API_Bcdc_Notification extends PayPal_Brasil_API_Handler
     }
 
     /**
-     * Handle the request.
+     * Enable or disable the BCDC migration banner in admin.
      */
     public function handle()
     {
@@ -35,24 +35,23 @@ class PayPal_Brasil_API_Bcdc_Notification extends PayPal_Brasil_API_Handler
             $json_data = file_get_contents('php://input');
             $post_data = json_decode($json_data, true);
 
-            if (!is_array($post_data) || !isset($post_data['active'])) {
+            if (!isset($post_data['active'])) {
                 $this->send_error_response('Missing required param: active', array(), 400);
             }
 
             $active = wc_string_to_bool($post_data['active']);
             update_option('active_banner_notification_bcdc', $active);
 
-            if (isset($post_data['message'])) {
-                update_option('message_banner_notification_bcdc', sanitize_text_field($post_data['message']));
-            }
-
             $message = $active
-                ? __('Banner updated', 'paypal-brasil-para-woocommerce')
-                : __('Banner updated', 'paypal-brasil-para-woocommerce');
+                ? __('Banner notification enabled', 'paypal-brasil-para-woocommerce')
+                : __('Banner notification disabled', 'paypal-brasil-para-woocommerce');
 
-            $this->send_success_response($message, array('active' => $active));
+            $this->send_success_response(
+                $message,
+                array('active' => $active)
+            );
         } catch (Exception $ex) {
-            $this->send_error_response('Banner not activated Error: ' . $ex->getMessage());
+            $this->send_error_response('Banner notification update error: ' . $ex->getMessage());
         }
     }
 
@@ -91,4 +90,4 @@ class PayPal_Brasil_API_Bcdc_Notification extends PayPal_Brasil_API_Handler
 
 }
 
-new PayPal_Brasil_API_Bcdc_Notification();
+new PayPal_Brasil_API_Banner_Notification();

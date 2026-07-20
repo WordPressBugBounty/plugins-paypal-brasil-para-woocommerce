@@ -33,8 +33,11 @@ class PayPal_Brasil_Handler {
 		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-billing-agreement-token.php';
 		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-save-billing-agreement.php';
 		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-bcdc-notification.php';
+		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-banner-notification.php';
 		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-bcdc-activate.php';
 		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-ppp-activate.php';
+		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-pplus-deactivate.php';
+		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-bcdc-checkout-activate.php';
 		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-logger-handler.php';
 	}
 

@@ -32,6 +32,10 @@ class PayPal_Brasil_API_PPP_Activate extends PayPal_Brasil_API_Handler
                 $this->send_error_response('Not authorized',array(),403);
             }
 
+            if (paypal_brasil_is_pplus_retired()) {
+                $this->send_error_response('Error: PayPal Plus is hidden. Use pplus_deactivation_update with active true to restore it.');
+            }
+
             $json_data = file_get_contents('php://input');
             $post_data = json_decode($json_data, true);
             $activeGateway = sanitize_text_field($post_data['active']);
@@ -67,7 +71,7 @@ class PayPal_Brasil_API_PPP_Activate extends PayPal_Brasil_API_Handler
         $ch = curl_init();
 
         // Definir as opções da requisição cURL
-        curl_setopt($ch, CURLOPT_URL, 'https://paypalpcpnuvem.com/verify');
+        curl_setopt($ch, CURLOPT_URL, PAYPAL_BRASIL_PCP_API_VERIFY_URL);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));

@@ -4,6 +4,10 @@
 .ppp-brasil-banner {
   margin-top: 20px; }
 
+.admin-options-container tr.hidden,
+.admin-options-container .hidden {
+  display: none; }
+
 .admin-options-container .preview-container {
   width: 100%;
   background-color: #fff;
@@ -77,6 +81,43 @@
     .admin-options-container .alert-dialog .dialog-content p {
       font-size: 0.9rem;
       margin-top: 0; }
+
+.admin-options-container .checkout-field-mapping-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1d2327;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  cursor: pointer;
+  text-align: left; }
+  .admin-options-container .checkout-field-mapping-toggle:hover, .admin-options-container .checkout-field-mapping-toggle:focus {
+    color: #2271b1; }
+  .admin-options-container .checkout-field-mapping-toggle .checkout-field-mapping-toggle-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px; }
+
+.admin-options-container .checkout-field-mapping-table {
+  max-width: 100%;
+  margin-top: 0; }
+  .admin-options-container .checkout-field-mapping-table th,
+  .admin-options-container .checkout-field-mapping-table td {
+    padding: 8px 12px;
+    vertical-align: middle; }
+  .admin-options-container .checkout-field-mapping-table .checkout-field-mapping-label {
+    width: 35%;
+    font-weight: 600; }
+  .admin-options-container .checkout-field-mapping-table .checkout-field-mapping-input {
+    width: 100%;
+    max-width: 400px; }
+
+.admin-options-container .checkout-field-mapping-actions {
+  margin-top: 0.75em; }
 
 
 /*# sourceMappingURL=admin-options-bcdc.css.map*/

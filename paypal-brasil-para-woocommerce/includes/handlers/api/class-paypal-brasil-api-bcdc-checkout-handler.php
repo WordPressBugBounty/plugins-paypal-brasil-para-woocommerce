@@ -68,15 +68,25 @@ class PayPal_Brasil_API_Bcdc_Checkout_Handler extends PayPal_Brasil_API_Handler
 			),
 			array(
 				'name' => __('address', "paypal-brasil-para-woocommerce"),
-				'key' => 'address',
+				'key' => 'address_line_1',
 				'sanitize' => 'sanitize_text_field',
 				//'validation' => array($this, 'required_text'),
+			),
+			array(
+				'name' => __('address', "paypal-brasil-para-woocommerce"),
+				'key' => 'address',
+				'sanitize' => 'sanitize_text_field',
 			),
 			array(
 				'name' => __('number', "paypal-brasil-para-woocommerce"),
 				'key' => 'number',
 				'sanitize' => 'sanitize_text_field',
 				//'validation' => array($this, 'required_text'),
+			),
+			array(
+				'name' => __('complement', "paypal-brasil-para-woocommerce"),
+				'key' => 'address_line_2',
+				'sanitize' => 'sanitize_text_field',
 			),
 			array(
 				'name' => __('complement', "paypal-brasil-para-woocommerce"),
@@ -118,7 +128,26 @@ class PayPal_Brasil_API_Bcdc_Checkout_Handler extends PayPal_Brasil_API_Handler
 				'sanitize' => 'sanitize_text_field',
 				//'validation' => array($this, 'required_text'),
 			),
+			array(
+				'name' => __('BCDC selected', "paypal-brasil-para-woocommerce"),
+				'key' => 'wc-bcdc-brasil-selected',
+				'sanitize' => array( $this, 'sanitize_wc_bcdc_brasil_selected' ),
+			),
 		);
+	}
+
+	/**
+	 * Sanitize flag enviada no JSON do createOrder (boolean ou string).
+	 *
+	 * @param mixed  $value Raw value.
+	 * @param string $key   Field key.
+	 * @return bool
+	 */
+	public function sanitize_wc_bcdc_brasil_selected( $value, $key = '' ) {
+		if ( is_bool( $value ) ) {
+			return $value;
+		}
+		return filter_var( $value, FILTER_VALIDATE_BOOLEAN );
 	}
 
 	/**

@@ -47,7 +47,7 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 		// Store some default gateway settings.
 		$this->id = 'paypal-brasil-spb-gateway';
 		$this->has_fields = true;
-		$this->method_title = __('PayPal Brasil', "paypal-brasil-para-woocommerce");
+		$this->method_title = __('PayPal Brasil - Carteira digital', "paypal-brasil-para-woocommerce");
 		$this->icon = plugins_url('assets/images/paypal-logo.png', PAYPAL_PAYMENTS_MAIN_FILE);
 		$this->method_description = __(
 			'Add PayPal Digital Wallet Solutions to Your WooCommerce Store.',

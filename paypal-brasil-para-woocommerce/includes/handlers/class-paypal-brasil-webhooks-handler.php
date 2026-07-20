@@ -8,8 +8,6 @@ if (!defined('ABSPATH')) {
 if (!class_exists('WC_PAYPAL_LOGGER')) {
 	require_once plugin_dir_path(__FILE__) . '../class-wc-paypal-logger.php';
 }
-use Automattic\WooCommerce\Utilities\OrderUtil;
-
 // Check if class already exists before create.
 if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 
@@ -46,6 +44,91 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 		}
 
 		/**
+		 * Find order IDs by PayPal sale / capture meta (simple queries — nested meta_query can fail on HPOS).
+		 *
+		 * @param array  $lookup_ids          PayPal identifiers from the webhook.
+		 * @param string $resource_meta_key   Primary gateway meta key (e.g. wc_bcdc_brasil_sale_id).
+		 * @param string|null $capture_meta_key Optional capture meta key (BCDC).
+		 * @return int[]
+		 */
+		private function find_order_ids_by_paypal_lookup( $lookup_ids, $resource_meta_key, $capture_meta_key ) {
+			foreach ( $lookup_ids as $lookup_id ) {
+				$found = wc_get_orders(
+					array(
+						'limit'      => 1,
+						'return'     => 'ids',
+						'status'     => 'any',
+						'meta_query' => array(
+							array(
+								'key'     => $resource_meta_key,
+								'value'   => $lookup_id,
+								'compare' => '=',
+							),
+						),
+					)
+				);
+				if ( ! empty( $found ) ) {
+					return $found;
+				}
+				if ( $capture_meta_key ) {
+					$found = wc_get_orders(
+						array(
+							'limit'      => 1,
+							'return'     => 'ids',
+							'status'     => 'any',
+							'meta_query' => array(
+								array(
+									'key'     => $capture_meta_key,
+									'value'   => $lookup_id,
+									'compare' => '=',
+								),
+							),
+						)
+					);
+					if ( ! empty( $found ) ) {
+						return $found;
+					}
+				}
+			}
+			return array();
+		}
+
+		/**
+		 * Resolve WooCommerce order id from PAYMENT.CAPTURE.* resource (custom_id or invoice_id).
+		 *
+		 * @param array $event Webhook payload.
+		 * @return int 0 if not resolved.
+		 */
+		private function try_resolve_wc_order_id_from_capture_resource( $event ) {
+			$resource = isset( $event['resource'] ) && is_array( $event['resource'] ) ? $event['resource'] : null;
+			if ( ! $resource ) {
+				return 0;
+			}
+			$custom_id = isset( $resource['custom_id'] ) ? $resource['custom_id'] : '';
+			if ( is_string( $custom_id ) && preg_match( '/#(\d+)/u', $custom_id, $m ) ) {
+				return (int) $m[1];
+			}
+			if ( ! is_object( $this->gateway ) || ! is_callable( array( $this->gateway, 'get_option' ) ) ) {
+				return 0;
+			}
+			$invoice_id = isset( $resource['invoice_id'] ) ? $resource['invoice_id'] : '';
+			$prefix       = (string) $this->gateway->get_option( 'invoice_id_prefix', '' );
+			if ( $invoice_id === '' || $prefix === '' || strpos( $invoice_id, $prefix ) !== 0 ) {
+				return 0;
+			}
+			$rest = substr( $invoice_id, strlen( $prefix ) );
+			// invoice_id = prefix + WC order id + UUID (36 chars from wp_generate_uuid4()).
+			if ( strlen( $rest ) <= 36 ) {
+				return 0;
+			}
+			$maybe_order_id = substr( $rest, 0, -36 );
+			if ( ctype_digit( $maybe_order_id ) ) {
+				return (int) $maybe_order_id;
+			}
+			return 0;
+		}
+
+		/**
 		 * Handle the event.
 		 *
 		 * @param $event
@@ -54,14 +137,15 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 		 */
 		public function handle($event)
 		{
-			global $wpdb;
-
-			
 			$gateway_meta_keys = [
 				"paypal-brasil-plus-gateway" => 'wc_ppp_brasil_sale_id',
 				"paypal-brasil-spb-gateway" => 'paypal_brasil_sale_id',
 				"paypal-brasil-bcdc-gateway" => 'wc_bcdc_brasil_sale_id'
 			];
+
+			$gateway_capture_meta_keys = array(
+				'paypal-brasil-bcdc-gateway' => 'wc_bcdc_brasil_capture_id',
+			);
 
 
 			$method_name = 'handle_process_' . str_replace('.', '_', strtolower($event['event_type']));
@@ -69,94 +153,72 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 			$this->log('Handling process method: ' . $method_name);
 			if (method_exists($this, $method_name)) {
 				$this->log('Method name: ' . $method_name);
+				// PAYMENT.CAPTURE.* sends resource.id = capture id; BCDC stores PayPal order id in wc_bcdc_brasil_sale_id.
+				// supplementary_data.related_ids.order_id links capture -> order for lookup.
 				$resource_id = isset($event['resource']['sale_id']) ? $event['resource']['sale_id'] : $event['resource']['id'];
-				$this->log('Resource ID: ' . $resource_id);
+				$lookup_ids = array();
+				if ($resource_id !== null && $resource_id !== '') {
+					$lookup_ids[] = $resource_id;
+				}
+				$related_paypal_order_id = isset($event['resource']['supplementary_data']['related_ids']['order_id'])
+					? $event['resource']['supplementary_data']['related_ids']['order_id']
+					: '';
+				if ($related_paypal_order_id !== '' && ! in_array($related_paypal_order_id, $lookup_ids, true)) {
+					$lookup_ids[] = $related_paypal_order_id;
+				}
+				$this->log('Resource ID: ' . $resource_id . ( $related_paypal_order_id !== '' ? ' | related PayPal order id: ' . $related_paypal_order_id : '' ));
 
+				if ( ! isset( $gateway_meta_keys[ $this->gateway_id ] ) ) {
+					$this->log( 'Invalid gateway ID: ' . $this->gateway_id );
+					throw new Exception( 'Error on webhook handling' );
+				}
 
-				if (OrderUtil::custom_orders_table_usage_is_enabled()) {
+				$resource_meta_key = $gateway_meta_keys[ $this->gateway_id ];
+				$capture_meta_key  = isset( $gateway_capture_meta_keys[ $this->gateway_id ] )
+					? $gateway_capture_meta_keys[ $this->gateway_id ]
+					: null;
 
-					if (isset($gateway_meta_keys[$this->gateway_id])) {
-						$resource_meta_key = $gateway_meta_keys[$this->gateway_id];
+				if ( empty( $lookup_ids ) ) {
+					$this->log( 'Order not found with this resource_id (empty lookup)' );
+					throw new Exception( 'Order not found' );
+				}
 
-						$order_query = new WC_Order_Query(
-							array(
-								'limit' => 1,
-								'return' => 'ids',
-								'meta_query' => array(
-									array(
-										'key' => $resource_meta_key,
-										'value' => $resource_id,
-										'compare' => '='
-									)
-								),
-								'status' => array(
-									'wc-pending',
-									'wc-processing',
-									'wc-on-hold',
-									'wc-completed',
-									'wc-cancelled',
-									'wc-refunded',
-									'wc-failed'
-								)
-							)
-						);
-					} else {
-						$this->log('Invalid gateway ID: ' . $this->gateway_id);
-						throw new Exception("Error on webhook handling");
+				$order_ids = $this->find_order_ids_by_paypal_lookup( $lookup_ids, $resource_meta_key, $capture_meta_key );
+
+				if ( empty( $order_ids ) ) {
+					$fallback_wc_order_id = $this->try_resolve_wc_order_id_from_capture_resource( $event );
+					if ( $fallback_wc_order_id > 0 ) {
+						$order_ids = array( $fallback_wc_order_id );
+						$this->log( 'Order candidate from custom_id/invoice_id: ' . $fallback_wc_order_id );
+					}
+				}
+
+				if ( ! empty( $order_ids ) ) {
+					$order_id = $order_ids[0];
+					$this->log( 'Order ID: ' . $order_id );
+					$order    = wc_get_order( $order_id );
+
+					$payment_method = ! empty( $order ) ? $order->get_payment_method() : '';
+					$this->log( 'Payment method: ' . $payment_method );
+
+					$stored_sale    = $order ? $order->get_meta( $resource_meta_key ) : '';
+					$stored_capture = ( $order && $capture_meta_key ) ? $order->get_meta( $capture_meta_key ) : '';
+					$id_matches     = in_array( $stored_sale, $lookup_ids, true )
+						|| ( $stored_capture !== '' && in_array( $stored_capture, $lookup_ids, true ) );
+					if ( ! $id_matches ) {
+						$this->log( 'Resource ID mismatch' );
+						return;
 					}
 
-
-					$order_ids = $order_query->get_orders();
-
-
-					// If found the order ID with this sale ID.
-					if (!empty($order_ids)) {
-						$order_id = $order_ids[0];
-						$this->log('Order ID: ' . $order_id);
-						$order = wc_get_order($order_id);
-
-						$payment_method = !empty($order) ? $order->get_payment_method() : "";
-						$this->log('Payment method: ' . $payment_method);
-
-						//Checks if order found has the same order id as webhook.
-						if ($order->get_meta($resource_meta_key) !== $resource_id) {
-							$this->log('Resource ID mismatch');
-							return;
-						}
-
-						// If is this gateway, process the order.
-						if ($payment_method === $this->gateway_id) {
-							$this->log('Processing webhook for payment method: ' . $payment_method);
-							$this->{$method_name}($order, $event);
-						} else {
-							$this->log('Payment method not found: ' . $payment_method);
-							
-						}
+					if ( $payment_method === $this->gateway_id ) {
+						$this->log( 'Processing webhook for payment method: ' . $payment_method );
+						$this->{$method_name}( $order, $event );
 					} else {
-						$this->log('Order not found with this resource_id');
-						throw new Exception("Order not found");
+						$this->log( 'Payment method not found: ' . $payment_method );
 					}
 				} else {
-					$order_id_query = $wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key IN ('paypal_brasil_id', 'wc_ppp_brasil_sale_id','wc_bcdc_brasil_sale_id') AND meta_value = %s", $resource_id);
-					$this->log('Order ID query: ' . $order_id_query);
-					$order_id = $wpdb->get_var($order_id_query);
-
-					// If found the order ID with this sale ID.
-					if (!empty($order_id)) {
-						$this->log('Order ID: ' . $order_id);
-						$order = wc_get_order($order_id);
-
-						$payment_method = !empty($order) ? $order->get_payment_method() : "";
-						$this->log('Payment method: ' . $payment_method);
-
-						// If is this gateway, process the order.
-						if ($payment_method === $this->gateway_id) {
-							$this->log('Processing for payment method: ' . $payment_method);
-							$this->{$method_name}($order, $event);
-						} else {
-							$this->log('Payment method not found: ' . $payment_method);
-						}
-					}
+					$this->log( 'Order not found with this resource_id' );
+					throw new Exception( 'Order not found' );
 				}
 
 			} else {

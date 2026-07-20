@@ -11,6 +11,7 @@ if ( ! class_exists( 'WC_PAYPAL_LOGGER' ) ) {
     require_once plugin_dir_path( __FILE__ ) . '../class-wc-paypal-logger.php';
 }
 
+require_once plugin_dir_path( __FILE__ ) . '../helpers/class-bcdc-checkout-field-mapper.php';
 require_once plugin_dir_path( __FILE__ ) . '../helpers/class-bcdc-billing-data-merger.php';
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
@@ -25,6 +26,7 @@ use Automattic\WooCommerce\Utilities\OrderUtil;
  * @property string debug
  * @property string invoice_id_prefix
  * @property string title_complement
+ * @property string credential_configuration
  */
 class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 {
@@ -33,6 +35,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 	private static $uuid;
 	private string $invoice_id_prefix;
 	private string $title_complement;
+	public $credential_configuration;
 
 
 	/**
@@ -45,7 +48,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		// Store some default gateway settings.
 		$this->id = 'paypal-brasil-bcdc-gateway';
 		$this->has_fields = true;
-		$this->method_title = __('PayPal Brasil', "paypal-brasil-para-woocommerce");
+		$this->method_title = __('PayPal Brasil - Checkout transparente', "paypal-brasil-para-woocommerce");
+		$this->icon = plugins_url('assets/images/paypal-logo.png', PAYPAL_PAYMENTS_MAIN_FILE);
 		$this->method_description = __('Add PayPal Transparent Checkout to Your WooCommerce Store.', "paypal-brasil-para-woocommerce");
 		$this->supports = array(
 			'products',
@@ -60,6 +64,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		$this->title = __('PayPal Brasil - Transparent Checkout', "paypal-brasil-para-woocommerce");
 		$this->title_complement = $this->get_option('title_complement');
 		$this->mode = $this->get_option('mode');
+		$this->credential_configuration = $this->get_option('credential_configuration', 'new_credentials');
 		$this->client_live = $this->get_option('client_live');
 		$this->client_sandbox = $this->get_option('client_sandbox');
 		$this->secret_live = $this->get_option('secret_live');
@@ -262,6 +267,17 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 				),
 				'description' => __('Use this option to toggle between Sandbox and Production modes. Sandbox is used for testing and Production for actual purchases.', "paypal-brasil-para-woocommerce"),
 			),
+			'credential_configuration' => array(
+				'title' => __('Credential Configuration', "paypal-brasil-para-woocommerce"),
+				'type' => 'select',
+				'options' => array(
+					'use_spb' => __('Use SPB Credentials', "paypal-brasil-para-woocommerce"),
+					'use_plus' => __('Use Plus Credentials', "paypal-brasil-para-woocommerce"),
+					'new_credentials' => __('Configure New Credentials', "paypal-brasil-para-woocommerce"),
+				),
+				'description' => __('Choose how you want to configure your credentials. You can use existing credentials from other gateways or configure new ones.', "paypal-brasil-para-woocommerce"),
+				'default' => 'new_credentials',
+			),
 			'client_live' => array(
 				'title' => '',
 				'type' => 'text',
@@ -301,7 +317,157 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 				'default' => '',
 				'description' => __('Add a prefix to the order number, this is useful for identifying you when you have more than one store processing through PayPal.', 'paypal-bcdc-brasil'),
 			),
+
+			'checkout_field_mapping' => array(
+				'title' => __('Checkout field mapping', 'paypal-brasil-para-woocommerce'),
+				'type' => 'textarea',
+				'default' => '',
+			),
 		);
+	}
+
+	/**
+	 * Checkout field mapping definitions (internal key, label, default WooCommerce field name).
+	 *
+	 * @return array<string, array{label: string, default: string}>
+	 */
+	public function get_checkout_field_mapping_definitions() {
+		$definitions = BCDC_Checkout_Field_Mapper::get_definitions();
+		$translated    = array();
+
+		foreach ( $definitions as $key => $definition ) {
+			$translated[ $key ] = array(
+				'label'   => __( $definition['label'], 'paypal-brasil-para-woocommerce' ),
+				'default' => $definition['default'],
+			);
+		}
+
+		return $translated;
+	}
+
+	/**
+	 * Default checkout field names keyed by internal BCDC field.
+	 *
+	 * @return array<string, string>
+	 */
+	public function get_default_checkout_field_mapping() {
+		return BCDC_Checkout_Field_Mapper::get_default_mapping();
+	}
+
+	/**
+	 * Resolved checkout field mapping (saved overrides merged with defaults).
+	 *
+	 * @return array<string, string>
+	 */
+	public function get_checkout_field_mapping() {
+		$mapping = BCDC_Checkout_Field_Mapper::resolve_mapping(
+			(string) $this->get_option( 'checkout_field_mapping', '' )
+		);
+
+		return apply_filters( 'wc_bcdc_brasil_checkout_field_mapping', $mapping );
+	}
+
+	/**
+	 * Validate and sanitize checkout field mapping on save.
+	 *
+	 * @param string $key   Field key.
+	 * @param mixed  $value Field value.
+	 * @return string
+	 */
+	public function validate_checkout_field_mapping_field( $key, $value ) {
+		return BCDC_Checkout_Field_Mapper::sanitize_saved_mapping( wp_unslash( (string) $value ) );
+	}
+
+	/**
+	 * Read a billing field value from checkout, post data or order.
+	 *
+	 * @param string        $internal_key Internal BCDC field key.
+	 * @param WC_Checkout   $checkout     Checkout instance.
+	 * @param array         $post_data    Parsed post_data from checkout.
+	 * @param WC_Order|null $order        Order instance for order-pay.
+	 * @return string
+	 */
+	private function get_checkout_field_value( $internal_key, $checkout, $post_data, $order = null ) {
+		$mapping        = $this->get_checkout_field_mapping();
+		$defaults       = $this->get_default_checkout_field_mapping();
+		$checkout_field = $mapping[ $internal_key ] ?? ( $defaults[ $internal_key ] ?? '' );
+
+		if ( $order ) {
+			return $this->get_order_checkout_field_value( $order, $internal_key, $checkout_field, $defaults[ $internal_key ] ?? '' );
+		}
+
+		if ( $checkout ) {
+			$value = $checkout->get_value( $checkout_field );
+			if ( ! empty( $value ) ) {
+				return sanitize_text_field( $value );
+			}
+		}
+
+		return isset( $post_data[ $checkout_field ] ) ? sanitize_text_field( $post_data[ $checkout_field ] ) : '';
+	}
+
+	/**
+	 * Read a billing field value from an existing order.
+	 *
+	 * @param WC_Order $order          Order instance.
+	 * @param string   $internal_key   Internal BCDC field key.
+	 * @param string   $checkout_field Mapped checkout field name.
+	 * @param string   $default_field  Default checkout field name.
+	 * @return string
+	 */
+	private function get_order_checkout_field_value( $order, $internal_key, $checkout_field, $default_field ) {
+		$is_default = ( $checkout_field === $default_field );
+
+		if ( $is_default ) {
+			switch ( $internal_key ) {
+				case 'first_name':
+					return $order->get_billing_first_name() ?: $order->get_shipping_first_name();
+				case 'last_name':
+					return $order->get_billing_last_name() ?: $order->get_shipping_last_name();
+				case 'email':
+					return $order->get_billing_email();
+				case 'postcode':
+					return $order->get_billing_postcode() ?: $order->get_shipping_postcode();
+				case 'address':
+					return $order->get_billing_address_1() ?: $order->get_shipping_address_1();
+				case 'address_2':
+					return $order->get_billing_address_2() ?: $order->get_shipping_address_2();
+				case 'city':
+					return $order->get_billing_city() ?: $order->get_shipping_city();
+				case 'state':
+					return $order->get_billing_state() ?: $order->get_shipping_state();
+				case 'country':
+					return $order->get_billing_country() ?: $order->get_shipping_country();
+				case 'phone':
+					return $order->get_billing_phone();
+				case 'person_type':
+				case 'cpf':
+				case 'cnpj':
+				case 'neighborhood':
+				case 'number':
+					return (string) $order->get_meta( '_' . $checkout_field, true, 'view' );
+			}
+		}
+
+		return (string) $order->get_meta( '_' . $checkout_field, true, 'view' );
+	}
+
+	/**
+	 * Build billing data array from checkout or order using field mapping.
+	 *
+	 * @param WC_Checkout   $checkout  Checkout instance.
+	 * @param array         $post_data Parsed post_data from checkout.
+	 * @param WC_Order|null $order     Order instance for order-pay.
+	 * @return array
+	 */
+	private function build_billing_data_from_checkout( $checkout, $post_data, $order = null ) {
+		$billing_data = array();
+
+		foreach ( array_keys( $this->get_default_checkout_field_mapping() ) as $internal_key ) {
+			$billing_data[ $internal_key ] = $this->get_checkout_field_value( $internal_key, $checkout, $post_data, $order );
+		}
+
+		return $billing_data;
 	}
 
 	/**
@@ -349,6 +515,197 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 	public function is_credentials_validated()
 	{
 		return get_option($this->get_option_key() . '_validator') === 'yes';
+	}
+
+	/**
+	 * Copy Plus gateway settings into BCDC when activating via API.
+	 *
+	 * @param array $bcdc_settings BCDC settings to update.
+	 * @return array
+	 */
+	public function apply_settings_from_plus( array $bcdc_settings ) {
+		$plus_settings = get_option( 'woocommerce_paypal-brasil-plus-gateway_settings' );
+
+		if ( ! is_array( $plus_settings ) ) {
+			return $bcdc_settings;
+		}
+
+		$plus_mode   = isset( $plus_settings['mode'] ) ? $plus_settings['mode'] : 'live';
+		$client_key  = $plus_mode === 'sandbox' ? 'client_sandbox' : 'client_live';
+		$secret_key  = $plus_mode === 'sandbox' ? 'secret_sandbox' : 'secret_live';
+		$has_credentials = ! empty( $plus_settings[ $client_key ] ) && ! empty( $plus_settings[ $secret_key ] );
+
+		if ( $has_credentials ) {
+			$bcdc_settings['credential_configuration'] = 'use_plus';
+			$bcdc_settings['mode']                       = $plus_mode;
+
+			foreach ( array( 'client_live', 'secret_live', 'client_sandbox', 'secret_sandbox' ) as $credential_key ) {
+				if ( ! empty( $plus_settings[ $credential_key ] ) ) {
+					$bcdc_settings[ $credential_key ] = $plus_settings[ $credential_key ];
+				}
+			}
+		}
+
+		if ( ! empty( $plus_settings['title_complement'] ) ) {
+			$bcdc_settings['title_complement'] = $plus_settings['title_complement'];
+		}
+
+		if ( ! empty( $plus_settings['invoice_id_prefix'] ) ) {
+			$bcdc_settings['invoice_id_prefix'] = $plus_settings['invoice_id_prefix'];
+		}
+
+		return $bcdc_settings;
+	}
+
+	/**
+	 * Reload saved settings and run credential validation plus webhook setup.
+	 */
+	public function setup_gateway_after_activation() {
+		$this->init_settings();
+		$this->enabled                  = $this->get_option( 'enabled' );
+		$this->mode                     = $this->get_option( 'mode' );
+		$this->credential_configuration = $this->get_option( 'credential_configuration', 'new_credentials' );
+		$this->client_live              = $this->get_option( 'client_live' );
+		$this->client_sandbox           = $this->get_option( 'client_sandbox' );
+		$this->secret_live              = $this->get_option( 'secret_live' );
+		$this->secret_sandbox           = $this->get_option( 'secret_sandbox' );
+		$this->title_complement         = $this->get_option( 'title_complement' );
+		$this->invoice_id_prefix        = $this->get_option( 'invoice_id_prefix' );
+
+		$this->api = new PayPal_Brasil_Orders_api_V2( $this->get_client_id(), $this->get_secret(), $this->mode, $this );
+
+		$this->update_credentials();
+		$this->validate_credentials();
+		$this->create_webhooks();
+	}
+
+	public function update_credentials()
+	{
+		$mode = $this->get_field_value('mode', $this->form_fields['mode']);
+		$credential_config = $this->get_field_value('credential_configuration', $this->form_fields['credential_configuration']);
+
+		$client = '';
+		$secret = '';
+
+		switch ($credential_config) {
+			case 'use_spb':
+				$credentials = $this->get_spb_credentials($mode);
+				$client = $credentials['client'];
+				$secret = $credentials['secret'];
+				break;
+
+			case 'use_plus':
+				$credentials = $this->get_plus_credentials($mode);
+				$client = $credentials['client'];
+				$secret = $credentials['secret'];
+				break;
+
+			case 'new_credentials':
+				$client_type = $mode === 'sandbox' ? 'client_sandbox' : 'client_live';
+				$secret_type = $mode === 'sandbox' ? 'secret_sandbox' : 'secret_live';
+				$client = $this->get_field_value($client_type, $this->form_fields[$client_type]);
+				$secret = $this->get_field_value($secret_type, $this->form_fields[$secret_type]);
+				break;
+
+			default:
+				return;
+		}
+
+		if (!empty($client) && !empty($secret)) {
+			$client_key = $mode === 'sandbox' ? 'client_sandbox' : 'client_live';
+			$secret_key = $mode === 'sandbox' ? 'secret_sandbox' : 'secret_live';
+
+			$this->update_option($client_key, $client);
+			$this->update_option($secret_key, $secret);
+
+			if ($mode === 'sandbox') {
+				$this->client_sandbox = $client;
+				$this->secret_sandbox = $secret;
+			} else {
+				$this->client_live = $client;
+				$this->secret_live = $secret;
+			}
+		}
+
+		$this->api->update_credentials($client, $secret, $mode);
+	}
+
+	/**
+	 * Get SPB gateway credentials.
+	 */
+	public function get_spb_credentials($mode)
+	{
+		$spb_settings = get_option('woocommerce_paypal-brasil-spb-gateway_settings');
+
+		if (!$spb_settings) {
+			return array('client' => '', 'secret' => '');
+		}
+
+		$client_key = $mode === 'sandbox' ? 'client_sandbox' : 'client_live';
+		$secret_key = $mode === 'sandbox' ? 'secret_sandbox' : 'secret_live';
+
+		return array(
+			'client' => isset($spb_settings[$client_key]) ? $spb_settings[$client_key] : '',
+			'secret' => isset($spb_settings[$secret_key]) ? $spb_settings[$secret_key] : '',
+		);
+	}
+
+	/**
+	 * Get Plus gateway credentials.
+	 */
+	public function get_plus_credentials($mode)
+	{
+		$plus_settings = get_option('woocommerce_paypal-brasil-plus-gateway_settings');
+
+		if (!$plus_settings) {
+			return array('client' => '', 'secret' => '');
+		}
+
+		$client_key = $mode === 'sandbox' ? 'client_sandbox' : 'client_live';
+		$secret_key = $mode === 'sandbox' ? 'secret_sandbox' : 'secret_live';
+
+		return array(
+			'client' => isset($plus_settings[$client_key]) ? $plus_settings[$client_key] : '',
+			'secret' => isset($plus_settings[$secret_key]) ? $plus_settings[$secret_key] : '',
+		);
+	}
+
+	public function get_client_id()
+	{
+		$credential_config = $this->get_option('credential_configuration', 'new_credentials');
+
+		switch ($credential_config) {
+			case 'use_spb':
+				$credentials = $this->get_spb_credentials($this->mode);
+				return $credentials['client'];
+
+			case 'use_plus':
+				$credentials = $this->get_plus_credentials($this->mode);
+				return $credentials['client'];
+
+			case 'new_credentials':
+			default:
+				return parent::get_client_id();
+		}
+	}
+
+	public function get_secret()
+	{
+		$credential_config = $this->get_option('credential_configuration', 'new_credentials');
+
+		switch ($credential_config) {
+			case 'use_spb':
+				$credentials = $this->get_spb_credentials($this->mode);
+				return $credentials['secret'];
+
+			case 'use_plus':
+				$credentials = $this->get_plus_credentials($this->mode);
+				return $credentials['secret'];
+
+			case 'new_credentials':
+			default:
+				return parent::get_secret();
+		}
 	}
 
 	function is_only_payment_method_active(){
@@ -474,6 +831,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 						'check_entry' => __('Check the entered data.', "paypal-brasil-para-woocommerce"),
 					),
 					'debug_mode' => 'yes' === $this->debug,
+					'checkout_field_mapping' => $this->get_checkout_field_mapping(),
 				)
 			);
 
@@ -673,6 +1031,9 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			$installments_monthly_value = $order_paypal_data['credit_financing_offer']['installment_details']['payment_due']['value'];
 			$installments_formatted_monthly_value = strip_tags(wc_price($installments_monthly_value));
 
+			$capture_id = isset( $sale['purchase_units'][0]['payments']['captures'][0]['id'] )
+				? $sale['purchase_units'][0]['payments']['captures'][0]['id']
+				: '';
 
 			if (OrderUtil::custom_orders_table_usage_is_enabled()) {
 				$order->update_meta_data('wc_bcdc_brasil_sale_id', $sale['id']);
@@ -680,12 +1041,18 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 				$order->update_meta_data('wc_bcdc_brasil_sandbox', $this->mode);
 				$order->update_meta_data('wc_bcdc_brasil_installments', $installments_term);
 				$order->update_meta_data('wc_bcdc_brasil_monthly_value', $installments_monthly_value);
+				if ( $capture_id !== '' ) {
+					$order->update_meta_data( 'wc_bcdc_brasil_capture_id', $capture_id );
+				}
 			} else {
 				update_post_meta($order_id, 'wc_bcdc_brasil_sale_id', $sale['id']);
 				update_post_meta($order_id, 'wc_bcdc_brasil_sale', $sale['purchase_units']);
 				update_post_meta($order_id, 'wc_bcdc_brasil_sandbox', $this->mode);
 				update_post_meta($order_id, 'wc_bcdc_brasil_installments', $installments_term);
 				update_post_meta($order_id, 'wc_bcdc_brasil_monthly_value', $installments_monthly_value);
+				if ( $capture_id !== '' ) {
+					update_post_meta( $order_id, 'wc_bcdc_brasil_capture_id', $capture_id );
+				}
 			}
 
 
@@ -887,6 +1254,11 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		$order_id = get_query_var('order-pay');
 		$order = $order_id ? new WC_Order($order_id) : null;
 
+		$post_data = array();
+		if ( isset( $_POST['post_data'] ) ) {
+			parse_str( wp_unslash( $_POST['post_data'] ), $post_data );
+		}
+
 		// Valores padrão
 		$defaults = [
 			'first_name' => '',
@@ -914,53 +1286,9 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 		// Verifica se os dados estão no objeto $order
 		if ($order) {
-			$billing_data = [
-				'postcode' => $order->get_billing_postcode() ?? $order->get_shipping_postcode(),
-				'address' => $order->get_billing_address_1() ?? $order->get_shipping_address_1(),
-				'address_2' => $order->get_billing_address_2() ?? $order->get_shipping_address_2(),
-				'city' => $order->get_billing_city()  ?? $order->get_shipping_city(),
-				'state' => $order->get_billing_state() ?? $order->get_shipping_state(),
-				'country' => $order->get_billing_country() ?? $order->get_shipping_country(),
-				'neighborhood' => $order->get_meta('_billing_neighborhood',true,"view"),
-				'number' => $order->get_meta('_billing_number',true,"view"),
-				'first_name' => $order->get_billing_first_name()  ?? $order->get_shipping_first_name(),
-				'last_name' => $order->get_billing_last_name()  ?? $order->get_shipping_last_name(),
-				'person_type' => $order->get_meta('_billing_persontype',true,"view"),
-				'cpf' => $order->get_meta('_billing_cpf',true,"view"),
-				'cnpj' => $order->get_meta('_billing_cnpj',true,"view"),
-				'phone' => $order->get_meta('_billing_cellphone',true,"view") ?: $order->get_billing_phone(),
-				'email' => $order->get_billing_email(),
-			];
+			$billing_data = $this->build_billing_data_from_checkout( $checkout, $post_data, $order );
 		} else {
-			// Se não houver o order, busca dados do checkout ou do $_POST['post_data']
-			$post_data = [];
-			if (isset($_POST['post_data'])) {
-				parse_str($_POST['post_data'], $post_data);
-			}
-
-			$get_field = function ($key, $default = '') use ($checkout, $post_data) {
-				// Tenta obter o valor do checkout ou de post_data
-				return $checkout->get_value($key) ?: ($post_data[$key] ?? $default);
-			};
-
-			$billing_data = [
-				'first_name' => $get_field('billing_first_name'),
-				'last_name' => $get_field('billing_last_name'),
-				'person_type' => $get_field('billing_persontype'),
-				'cpf' => $get_field('billing_cpf'),
-				'cnpj' => $get_field('billing_cnpj'),
-				'phone' => $get_field('billing_cellphone', $get_field('billing_phone')),
-				'email' => $get_field('billing_email'),
-				'postcode' => $get_field('billing_postcode'),
-				'address' => $get_field('billing_address_1'),
-				'address_2' => $get_field('billing_address_2'),
-				'city' => $get_field('billing_city'),
-				'state' => $get_field('billing_state'),
-				'country' => $get_field('billing_country'),
-				'neighborhood' => $get_field('billing_neighborhood'),
-				'number' => $get_field('billing_number'),
-			];
-
+			$billing_data = $this->build_billing_data_from_checkout( $checkout, $post_data );
 
 			WC_PAYPAL_LOGGER::log("Checkout data has been captured", $this->id, 'info');
 		}
@@ -998,7 +1326,9 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			}
 		}
 
-		$billing_data['wc-bcdc-brasil-selected'] = isset($post_data) ? filter_var($post_data['wc-bcdc-brasil-selected'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : false;
+		if ( array_key_exists( 'wc-bcdc-brasil-selected', $post_data ) ) {
+			$billing_data['wc-bcdc-brasil-selected'] = filter_var( $post_data['wc-bcdc-brasil-selected'], FILTER_VALIDATE_BOOLEAN );
+		}
 		$billing_data['can_create_payment'] = $can_create_payment;
 
 		if (!empty($missing_fields)) {
@@ -1033,6 +1363,11 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		$order_id = get_query_var('order-pay');
 		$order = $order_id ? new WC_Order($order_id) : null;
 
+		$post_data = array();
+		if ( isset( $_POST['post_data'] ) ) {
+			parse_str( wp_unslash( $_POST['post_data'] ), $post_data );
+		}
+
 		// Valores padrão
 		$defaults = [
 			'first_name' => '',
@@ -1060,53 +1395,9 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 		// Verifica se os dados estão no objeto $order
 		if ($order) {
-			$billing_data = [
-				'postcode' => $order->get_billing_postcode() ?? $order->get_shipping_postcode(),
-				'address' => $order->get_billing_address_1() ?? $order->get_shipping_address_1(),
-				'address_2' => $order->get_billing_address_2() ?? $order->get_shipping_address_2(),
-				'city' => $order->get_billing_city()  ?? $order->get_shipping_city(),
-				'state' => $order->get_billing_state() ?? $order->get_shipping_state(),
-				'country' => $order->get_billing_country() ?? $order->get_shipping_country(),
-				'neighborhood' => $order->get_meta('_billing_neighborhood',true,"view"),
-				'number' => $order->get_meta('_billing_number',true,"view"),
-				'first_name' => $order->get_billing_first_name()  ?? $order->get_shipping_first_name(),
-				'last_name' => $order->get_billing_last_name()  ?? $order->get_shipping_last_name(),
-				'person_type' => $order->get_meta('_billing_persontype',true,"view"),
-				'cpf' => $order->get_meta('_billing_cpf',true,"view"),
-				'cnpj' => $order->get_meta('_billing_cnpj',true,"view"),
-				'phone' => $order->get_meta('_billing_cellphone',true,"view") ?: $order->get_billing_phone(),
-				'email' => $order->get_billing_email(),
-			];
+			$billing_data = $this->build_billing_data_from_checkout( $checkout, $post_data, $order );
 		} else {
-			// Se não houver o order, busca dados do checkout ou do $_POST['post_data']
-			$post_data = [];
-			if (isset($_POST['post_data'])) {
-				parse_str($_POST['post_data'], $post_data);
-			}
-
-			$get_field = function ($key, $default = '') use ($checkout, $post_data) {
-				// Tenta obter o valor do checkout ou de post_data
-				return $checkout->get_value($key) ?: ($post_data[$key] ?? $default);
-			};
-
-			$billing_data = [
-				'first_name' => $get_field('billing_first_name'),
-				'last_name' => $get_field('billing_last_name'),
-				'person_type' => $get_field('billing_persontype'),
-				'cpf' => $get_field('billing_cpf'),
-				'cnpj' => $get_field('billing_cnpj'),
-				'phone' => $get_field('billing_cellphone', $get_field('billing_phone')),
-				'email' => $get_field('billing_email'),
-				'postcode' => $get_field('billing_postcode'),
-				'address' => $get_field('billing_address_1'),
-				'address_2' => $get_field('billing_address_2'),
-				'city' => $get_field('billing_city'),
-				'state' => $get_field('billing_state'),
-				'country' => $get_field('billing_country'),
-				'neighborhood' => $get_field('billing_neighborhood'),
-				'number' => $get_field('billing_number'),
-			];
-
+			$billing_data = $this->build_billing_data_from_checkout( $checkout, $post_data );
 
 			WC_PAYPAL_LOGGER::log("Checkout data has been captured", $this->id, 'info');
 		}
@@ -1124,6 +1415,12 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		$billing_data = wp_parse_args($billing_data, $defaults);
 		$billing_data = apply_filters('wc_bcdc_brasil_user_data', $billing_data);
 
+		// Checkouts sem o campo billing_persontype (ex.: FunnelKit) não enviam person_type.
+		// Nesses casos, considera pessoa física (CPF) como padrão.
+		if (empty($billing_data['person_type'])) {
+			$billing_data['person_type'] = '1';
+		}
+
 		$required_data = array('first_name', 'last_name', 'person_type');
 		$required_data[] = $billing_data['person_type'] == '1' ? 'cpf' : 'cnpj';
 
@@ -1136,7 +1433,9 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			}
 		}
 
-		$billing_data['wc-bcdc-brasil-selected'] = isset($post_data) ? filter_var($post_data['wc-bcdc-brasil-selected'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : false;
+		if ( array_key_exists( 'wc-bcdc-brasil-selected', $post_data ) ) {
+			$billing_data['wc-bcdc-brasil-selected'] = filter_var( $post_data['wc-bcdc-brasil-selected'], FILTER_VALIDATE_BOOLEAN );
+		}
 		$billing_data['can_create_payment'] = $can_create_payment;
 
 		return $billing_data;
@@ -1262,6 +1561,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 				}
 
+			} else {
+				$this->apply_billing_address_without_shipping( $payment_data, $data );
 			}
 
 		}
@@ -1447,6 +1748,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 				}
 
+			} else {
+				$this->apply_billing_address_without_shipping( $payment_data, $data );
 			}
 
 		}
@@ -1601,6 +1904,8 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			}
 		}
 
+		$shipping_address = null;
+
 		if (!$dummy) {
 			// Set shipping only when isn't digital
 			if (!$only_digital_items) {
@@ -1651,7 +1956,11 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 
 		//Set payer_info on payment_source.paypal data.
 		$payment_data['payment_source']['paypal'] = $this->get_payer_info($data);
-		$payment_data['payment_source']['paypal']['address'] = $shipping_address;
+		if ( $shipping_address && $this->validate_address( $shipping_address ) ) {
+			$payment_data['payment_source']['paypal']['address'] = $shipping_address;
+		} elseif ( ! $dummy && $only_digital_items ) {
+			$this->apply_billing_address_without_shipping( $payment_data, $data );
+		}
 
 		//capture items on the order.
 		$items_order = $order->get_items();
@@ -1726,6 +2035,28 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 	 */
 	private function get_pickup_store_full_name() {
 		return 'S2S ' . get_bloginfo( 'name' );
+	}
+
+	/**
+	 * Produtos virtuais: envia endereço de cobrança no pagador, sem shipping na purchase unit.
+	 *
+	 * @param array $payment_data Payload do CREATE_ORDER (por referência).
+	 * @param array $data         Dados de cobrança do checkout.
+	 */
+	private function apply_billing_address_without_shipping( array &$payment_data, array $data ) {
+		$billing_address = $this->get_payer_address( $data );
+		if ( ! $this->validate_address( $billing_address ) ) {
+			return;
+		}
+
+		if ( ! isset( $payment_data['payment_source']['paypal'] ) || ! is_array( $payment_data['payment_source']['paypal'] ) ) {
+			$payment_data['payment_source']['paypal'] = array();
+		}
+
+		$payment_data['payment_source']['paypal']['address'] = $billing_address;
+		$payment_data['payment_source']['paypal']['experience_context'] = array(
+			'shipping_preference' => 'NO_SHIPPING',
+		);
 	}
 
 	public function get_payer_address($data)
@@ -1869,6 +2200,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 				'template' => $this->get_admin_options_template(),
 				'enabled' => $this->enabled,
 				'mode' => $this->mode,
+				'credential_configuration' => $this->credential_configuration,
 				'client' => array(
 					'live' => $this->client_live,
 					'sandbox' => $this->client_sandbox,
@@ -1881,6 +2213,20 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 				'title_complement' => $this->title_complement,
 				'invoice_id_prefix' => $this->invoice_id_prefix,
 				'debug' => $this->debug,
+				'checkout_field_mapping' => $this->get_checkout_field_mapping(),
+				'checkout_field_mapping_definitions' => array_values(
+					array_map(
+						function ( $key, $definition ) {
+							return array(
+								'key'     => $key,
+								'label'   => $definition['label'],
+								'default' => $definition['default'],
+							);
+						},
+						array_keys( $this->get_checkout_field_mapping_definitions() ),
+						$this->get_checkout_field_mapping_definitions()
+					)
+				),
 				'images_path' => plugins_url('assets/images/buttons_bcdc', PAYPAL_PAYMENTS_MAIN_FILE)
 			)
 			);
@@ -1913,6 +2259,7 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 		return array(
 			'enabled' => $this->enabled,
 			'mode' => $this->mode,
+			'credential_configuration' => $this->credential_configuration,
 			'client' => array(
 				'live' => $this->client_live,
 				'sandbox' => $this->client_sandbox,
@@ -1925,6 +2272,20 @@ class Paypal_Brasil_BCDC_Gateway extends PayPal_Brasil_Gateway
 			'title_complement' => $this->title_complement,
 			'invoice_id_prefix' => $this->invoice_id_prefix,
 			'debug' => $this->debug,
+			'checkout_field_mapping' => $this->get_checkout_field_mapping(),
+			'checkout_field_mapping_definitions' => array_values(
+				array_map(
+					function ( $key, $definition ) {
+						return array(
+							'key'     => $key,
+							'label'   => $definition['label'],
+							'default' => $definition['default'],
+						);
+					},
+					array_keys( $this->get_checkout_field_mapping_definitions() ),
+					$this->get_checkout_field_mapping_definitions()
+				)
+			),
 		);
 	}
 

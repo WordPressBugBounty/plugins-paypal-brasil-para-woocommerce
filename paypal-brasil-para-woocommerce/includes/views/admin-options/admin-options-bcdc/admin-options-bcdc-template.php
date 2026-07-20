@@ -110,6 +110,40 @@
                 </td>
             </tr>
 
+            <!-- CONFIGURAÇÃO DE CREDENCIAIS -->
+
+            <tr valign="top">
+                <th scope="row" class="titledesc">
+                    <label for="<?php echo esc_attr($this->get_field_key('credential_configuration')); ?>">
+                        <?php _e("Credential Configuration", "paypal-brasil-para-woocommerce"); ?>
+                    </label>
+                </th>
+                <td class="forminp">
+                    <fieldset>
+                        <legend class="screen-reader-text">
+                            <span>
+                                <?php _e("Credential Configuration", "paypal-brasil-para-woocommerce"); ?>
+                            </span>
+                        </legend>
+                        <select class="select" id="<?php echo esc_attr($this->get_field_key('credential_configuration')); ?>"
+                            name="<?php echo esc_attr($this->get_field_key('credential_configuration')); ?>" v-model="credentialConfiguration">
+                            <option value="use_spb">
+                                <?php _e("Use SPB Credentials", "paypal-brasil-para-woocommerce"); ?>
+                            </option>
+                            <option value="use_plus">
+                                <?php _e("Use Plus Credentials", "paypal-brasil-para-woocommerce"); ?>
+                            </option>
+                            <option value="new_credentials">
+                                <?php _e("Configure New Credentials", "paypal-brasil-para-woocommerce"); ?>
+                            </option>
+                        </select>
+                        <p class="description">
+                            <?php _e("Choose how you want to configure your credentials. You can use existing credentials from other gateways or configure new ones.", "paypal-brasil-para-woocommerce"); ?>
+                        </p>
+                    </fieldset>
+                </td>
+            </tr>
+
             <!-- MODO -->
 
             <tr valign="top">
@@ -144,7 +178,7 @@
 
             <!-- CLIENT ID LIVE -->
 
-            <tr valign="top" :class="{hidden: !isLive()}">
+            <tr valign="top" v-show="useManualCredentials() && isLive()">
                 <th scope="row" class="titledesc">
                     <label for="<?php echo esc_attr($this->get_field_key('client_live')); ?>">
                         <?php _e("Client ID
@@ -173,7 +207,7 @@
 
             <!-- CLIENT ID SANDBOX -->
 
-            <tr valign="top" :class="{hidden: isLive()}">
+            <tr valign="top" v-show="useManualCredentials() && !isLive()">
                 <th scope="row" class="titledesc">
                     <label for="<?php echo esc_attr($this->get_field_key('client_sandbox')); ?>">
                         <?php _e(" Client ID
@@ -202,7 +236,7 @@
 
             <!-- SECRET LIVE -->
 
-            <tr valign="top" :class="{hidden: !isLive()}">
+            <tr valign="top" v-show="useManualCredentials() && isLive()">
                 <th scope="row" class="titledesc">
                     <label for="<?php echo esc_attr($this->get_field_key('secret_live')); ?>">
                         <?php _e("Secret (production)", "paypal-brasil-para-woocommerce"); ?>
@@ -230,7 +264,7 @@
 
             <!-- SECRET SANDBOX -->
 
-            <tr valign="top" :class="{hidden: isLive()}">
+            <tr valign="top" v-show="useManualCredentials() && !isLive()">
                 <th scope="row" class="titledesc">
                     <label for="<?php echo esc_attr($this->get_field_key('secret_sandbox')); ?>">
                         <?php _e("Secret (sandbox)", "paypal-brasil-para-woocommerce"); ?>
@@ -316,6 +350,71 @@
                                                                                    of the system &gt; Logs', "paypal-brasil-para-woocommerce"); ?>
                             </a>.
                         </p>
+                    </fieldset>
+                </td>
+            </tr>
+
+            <tr valign="top">
+                <th scope="row" class="titledesc">
+                    <button
+                        type="button"
+                        class="checkout-field-mapping-toggle"
+                        @click.prevent="toggleCheckoutFieldMapping"
+                        :aria-expanded="checkoutFieldMappingOpen ? 'true' : 'false'">
+                        <?php esc_html_e('Mapeamento de campos do checkout', 'paypal-brasil-para-woocommerce'); ?>
+                        <span
+                            class="checkout-field-mapping-toggle-icon dashicons"
+                            :class="checkoutFieldMappingOpen ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2'"
+                            aria-hidden="true"></span>
+                    </button>
+                </th>
+                <td class="forminp">
+                    <p class="description">
+                        <?php esc_html_e('Configure qual nome de campo do checkout corresponde a cada dado usado na criação do pedido. Use quando sua loja utiliza campos personalizados ou renomeados. Deixe em branco para usar o padrão do WooCommerce exibido no campo.', 'paypal-brasil-para-woocommerce'); ?>
+                    </p>
+                </td>
+            </tr>
+
+            <tr valign="top" v-show="checkoutFieldMappingOpen">
+                <th scope="row" class="titledesc"></th>
+                <td class="forminp">
+                    <fieldset>
+                        <table class="widefat checkout-field-mapping-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">
+                                        <?php esc_html_e('Nome padrão', 'paypal-brasil-para-woocommerce'); ?>
+                                    </th>
+                                    <th scope="col">
+                                        <?php esc_html_e('Nome do campo no checkout (atributo name)', 'paypal-brasil-para-woocommerce'); ?>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="field in fieldMappingDefinitions" :key="field.key">
+                                    <td class="checkout-field-mapping-label">
+                                        {{ field.label }}
+                                    </td>
+                                    <td>
+                                        <input
+                                            class="input-text regular-input checkout-field-mapping-input"
+                                            type="text"
+                                            :id="'checkout-field-mapping-' + field.key"
+                                            v-model="checkoutFieldMapping[field.key]"
+                                            :placeholder="field.default">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="checkout-field-mapping-actions">
+                            <button type="button" class="button button-link" @click.prevent="resetFieldMappingDefaults">
+                                <?php esc_html_e('Restaurar padrões', 'paypal-brasil-para-woocommerce'); ?>
+                            </button>
+                        </p>
+                        <input
+                            type="hidden"
+                            name="<?php echo esc_attr( $this->get_field_key( 'checkout_field_mapping' ) ); ?>"
+                            :value="checkoutFieldMappingJson">
                     </fieldset>
                 </td>
             </tr>

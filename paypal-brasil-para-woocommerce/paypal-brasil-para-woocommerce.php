@@ -3,7 +3,7 @@
 /**
  * Plugin Name: PayPal Brasil para WooCommerce
  * Description: Adicione facilmente opções de pagamento do PayPal à sua loja do WooCommerce.
- * Version: 1.7.2
+ * Version: 1.7.3
  * Author: PayPal
  * Author URI: https://paypal.com.br
  * Requires at least: 4.4
@@ -29,8 +29,11 @@ function paypal_brasil_init() {
 
 	// Define files.
 	define( 'PAYPAL_PAYMENTS_MAIN_FILE', __FILE__ );
-	define( 'PAYPAL_PAYMENTS_VERSION', '1.7.2' );
-    define('WC_PAYPAL_PLUGIN_SLUG','paypal-brasil-para-woocommerce');
+	define( 'PAYPAL_PAYMENTS_VERSION', '1.7.3' );
+	define( 'WC_PAYPAL_PLUGIN_SLUG', 'paypal-brasil-para-woocommerce' );
+	define( 'PAYPAL_BRASIL_PCP_API_BASE_URL', 'https://pcp-nuvem-prod.herokuapp.com' );
+	define( 'PAYPAL_BRASIL_PCP_API_VERIFY_URL', PAYPAL_BRASIL_PCP_API_BASE_URL . '/verify' );
+	define( 'PAYPAL_BRASIL_PCP_API_VALIDATE_URL', PAYPAL_BRASIL_PCP_API_BASE_URL . '/validate' );
 
 	// Init plugin.
 	PayPal_Brasil::get_instance();
@@ -52,6 +55,47 @@ add_action( 'before_woocommerce_init', function() {
 	}
 } );
 
+/**
+ * Main plugin file path relative to plugins directory.
+ *
+ * @return string
+ */
+function paypal_brasil_get_main_plugin_file() {
+	return plugin_basename( __FILE__ );
+}
+
+/**
+ * Check if auto-update is enabled for this plugin.
+ *
+ * @return bool
+ */
+function paypal_brasil_is_autoupdate_enabled() {
+	$auto_update_plugins = (array) get_site_option( 'auto_update_plugins', array() );
+
+	return in_array( paypal_brasil_get_main_plugin_file(), $auto_update_plugins, true );
+}
+
+/**
+ * Sync plugin statistics when auto-update setting changes for this plugin.
+ *
+ * @param mixed $old_value Previous auto_update_plugins option value.
+ * @param mixed $new_value Updated auto_update_plugins option value.
+ */
+function paypal_brasil_handle_auto_update_plugins_change( $old_value, $new_value ) {
+	$plugin_file = paypal_brasil_get_main_plugin_file();
+	$was_enabled = in_array( $plugin_file, (array) $old_value, true );
+	$is_enabled  = in_array( $plugin_file, (array) $new_value, true );
+
+	if ( $was_enabled === $is_enabled ) {
+		return;
+	}
+
+	statistic_tag_update_plugin();
+}
+
+add_action( 'update_option_auto_update_plugins', 'paypal_brasil_handle_auto_update_plugins_change', 10, 2 );
+add_action( 'update_site_option_auto_update_plugins', 'paypal_brasil_handle_auto_update_plugins_change', 10, 2 );
+
 function statistic_tag_update_plugin()
 {
     try {
@@ -67,17 +111,18 @@ function statistic_tag_update_plugin()
 				'uuid' => $plugin_id ? $plugin_id : null,
                 'status' => 'updated',
                 'store_url' => home_url(),
-				'plugin_version' => PAYPAL_PAYMENTS_VERSION,
+				'plugin_version' => PAYPAL_PAYMENTS_VERSION, 
                 'spb_enabled' => isset($gateway_settings_spb) ? $gateway_settings_spb['enabled'] : false,
                 'ppp_enabled' => isset($gateway_settings_ppp) ? $gateway_settings_ppp['enabled'] : false,
                 'bcdc_enabled' => isset($gateway_settings_bcdc) ? $gateway_settings_bcdc['enabled'] : false,
+                'autoupdate_enabled' => paypal_brasil_is_autoupdate_enabled(),
             );
     
             // Inicializar a sessão cURL
             $ch = curl_init();
     
             // Definir as opções da requisição cURL
-            curl_setopt($ch, CURLOPT_URL, 'https://paypalpcpnuvem.com/validate');
+            curl_setopt($ch, CURLOPT_URL, PAYPAL_BRASIL_PCP_API_VALIDATE_URL);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
