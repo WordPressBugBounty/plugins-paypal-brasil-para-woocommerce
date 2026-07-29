@@ -51,6 +51,8 @@ class PayPal_Brasil
 			add_action('plugins_loaded', array($this, 'include_gateways'));
 			add_filter('woocommerce_payment_gateways', array($this, 'add_payment_methods'));
 			add_action('init', array($this, 'filter_gateways_settings'));
+			// After plugin update, ensure Capture refund/reversed webhook events are registered.
+			add_action('woocommerce_init', array($this, 'maybe_sync_webhook_event_types'));
 		}
 
 
@@ -166,6 +168,103 @@ class PayPal_Brasil
 		} else {
 			add_action('admin_notices', array($this, 'woocommerce_missing_notice'));
 		}
+	}
+
+	/**
+	 * After update (or first boot on new schema), sync Orders v2 webhook event types
+	 * for enabled BCDC/SPB gateways that already have credentials saved.
+	 */
+	public function maybe_sync_webhook_event_types()
+	{
+		if (!defined('PAYPAL_BRASIL_WEBHOOK_EVENTS_VERSION')) {
+			return;
+		}
+
+		if (get_option('paypal_brasil_webhook_events_version') === PAYPAL_BRASIL_WEBHOOK_EVENTS_VERSION) {
+			return;
+		}
+
+		if (get_transient('paypal_brasil_webhook_sync_backoff') || get_transient('paypal_brasil_webhook_sync_lock')) {
+			return;
+		}
+
+		if (!function_exists('WC') || !WC()->payment_gateways()) {
+			return;
+		}
+
+		set_transient('paypal_brasil_webhook_sync_lock', 1, 5 * MINUTE_IN_SECONDS);
+
+		$synced = $this->sync_orders_v2_webhook_events();
+
+		delete_transient('paypal_brasil_webhook_sync_lock');
+
+		if ($synced) {
+			update_option('paypal_brasil_webhook_events_version', PAYPAL_BRASIL_WEBHOOK_EVENTS_VERSION);
+			return;
+		}
+
+		// Retry later if PayPal API was unavailable.
+		set_transient('paypal_brasil_webhook_sync_backoff', 1, HOUR_IN_SECONDS);
+	}
+
+	/**
+	 * Create/update webhooks for enabled BCDC and SPB using saved credentials.
+	 *
+	 * @return bool True when every eligible gateway synced successfully (or none eligible).
+	 */
+	private function sync_orders_v2_webhook_events()
+	{
+		$gateway_ids = array(
+			'paypal-brasil-bcdc-gateway',
+			'paypal-brasil-spb-gateway',
+		);
+
+		$payment_gateways = WC()->payment_gateways()->payment_gateways();
+		$attempted        = 0;
+		$failed           = 0;
+
+		foreach ($gateway_ids as $gateway_id) {
+			if (empty($payment_gateways[$gateway_id]) || !is_object($payment_gateways[$gateway_id])) {
+				continue;
+			}
+
+			$gateway = $payment_gateways[$gateway_id];
+
+			if ($gateway->get_option('enabled') !== 'yes') {
+				continue;
+			}
+
+			$client_id = $gateway->get_client_id();
+			$secret    = $gateway->get_secret();
+
+			if (empty($client_id) || empty($secret)) {
+				continue;
+			}
+
+			$attempted++;
+
+			if (isset($gateway->api) && is_object($gateway->api) && method_exists($gateway->api, 'update_credentials')) {
+				$gateway->api->update_credentials($client_id, $secret, $gateway->mode);
+			}
+
+			$result = $gateway->create_webhooks();
+			if ($result === false) {
+				$failed++;
+				if (class_exists('WC_PAYPAL_LOGGER')) {
+					WC_PAYPAL_LOGGER::log(
+						'Automatic webhook event sync failed after plugin update.',
+						$gateway_id,
+						'error'
+					);
+				}
+			}
+		}
+
+		if ($attempted === 0) {
+			return true;
+		}
+
+		return $failed === 0;
 	}
 
 	/**

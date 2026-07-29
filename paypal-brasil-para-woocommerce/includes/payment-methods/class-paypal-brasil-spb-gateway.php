@@ -415,12 +415,25 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 
 	/**
 	 * Create the webhook or use a existent webhook.
+	 *
+	 * @return bool True when webhook is ready (created/updated/already ok).
 	 */
 	public function create_webhooks()
 	{
 		// Set by default as not found.
 		$webhook = null;
 		$webhook_url = defined('PAYPAL_BRASIL_WEBHOOK_URL') ? PAYPAL_BRASIL_WEBHOOK_URL : $this->get_webhook_url();
+
+		$events_types = array(
+			'CHECKOUT.ORDER.COMPLETED',
+			'CHECKOUT.PAYMENT-APPROVAL.REVERSED',
+			'PAYMENT.CAPTURE.COMPLETED',
+			'PAYMENT.CAPTURE.REFUNDED',
+			'PAYMENT.CAPTURE.REVERSED',
+			'PAYMENT.SALE.REFUNDED',
+			'PAYMENT.SALE.REVERSED',
+			'PAYMENT.ORDER.CANCELLED',
+		);
 
 		try {
 
@@ -437,27 +450,45 @@ class PayPal_Brasil_SPB_Gateway extends PayPal_Brasil_Gateway
 
 			// If no webhook matched, create a new one.
 			if (!$webhook) {
-				$events_types = array(
-					'CHECKOUT.ORDER.COMPLETED',
-					'CHECKOUT.PAYMENT-APPROVAL.REVERSED',
-					'PAYMENT.CAPTURE.COMPLETED',
-					'PAYMENT.SALE.REFUNDED',
-					'PAYMENT.SALE.REVERSED',
-					'PAYMENT.ORDER.CANCELLED',
-				);
-
 				// Create webhook.
 				$webhook_result = $this->api->create_webhook($webhook_url, $events_types);
 
 				update_option('paypal_brasil_webhook_url-' . $this->id, $webhook_result['id']);
 
-				return;
+				return true;
+			}
+
+			$registered_event_names = array();
+			if (!empty($webhook['event_types']) && is_array($webhook['event_types'])) {
+				foreach ($webhook['event_types'] as $event_type) {
+					if (!empty($event_type['name'])) {
+						$registered_event_names[] = $event_type['name'];
+					}
+				}
+			}
+
+			$missing_events = array_diff($events_types, $registered_event_names);
+			if (!empty($missing_events)) {
+				try {
+					$this->api->update_webhook_event_types($webhook['id'], $events_types);
+				} catch (Exception $update_ex) {
+					WC_PAYPAL_LOGGER::log(
+						'Failed to update webhook event types: ' . $update_ex->getMessage(),
+						$this->id,
+						'error',
+						array('missing_events' => array_values($missing_events))
+					);
+					update_option('paypal_brasil_webhook_url-' . $this->id, $webhook['id']);
+					return false;
+				}
 			}
 
 			// Set the webhook ID
 			update_option('paypal_brasil_webhook_url-' . $this->id, $webhook['id']);
+			return true;
 		} catch (Exception $ex) {
 			update_option('paypal_brasil_webhook_url-' . $this->id, null);
+			return false;
 		}
 	}
 

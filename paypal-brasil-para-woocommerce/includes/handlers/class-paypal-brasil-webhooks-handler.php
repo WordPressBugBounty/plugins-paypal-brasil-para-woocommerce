@@ -129,6 +129,45 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 		}
 
 		/**
+		 * Extract capture id from refund/capture resource links (rel=up → /captures/{id}).
+		 * PAYMENT.CAPTURE.REFUNDED uses resource.id as the refund id, not the capture id.
+		 *
+		 * @param array $event Webhook payload.
+		 * @return string Empty string if not found.
+		 */
+		private function try_extract_capture_id_from_resource( $event ) {
+			$resource = isset( $event['resource'] ) && is_array( $event['resource'] ) ? $event['resource'] : null;
+			if ( ! $resource || empty( $resource['links'] ) || ! is_array( $resource['links'] ) ) {
+				return '';
+			}
+			foreach ( $resource['links'] as $link ) {
+				if ( empty( $link['rel'] ) || empty( $link['href'] ) || $link['rel'] !== 'up' ) {
+					continue;
+				}
+				if ( preg_match( '#/captures/([A-Za-z0-9_-]+)#', $link['href'], $m ) ) {
+					return $m[1];
+				}
+			}
+			return '';
+		}
+
+		/**
+		 * Refund amount from Sale (amount.total) or Capture/Orders v2 (amount.value).
+		 *
+		 * @param array $event Webhook payload.
+		 * @return string|null
+		 */
+		private function get_refund_amount_from_event( $event ) {
+			if ( isset( $event['resource']['amount']['value'] ) && $event['resource']['amount']['value'] !== '' ) {
+				return $event['resource']['amount']['value'];
+			}
+			if ( isset( $event['resource']['amount']['total'] ) && $event['resource']['amount']['total'] !== '' ) {
+				return $event['resource']['amount']['total'];
+			}
+			return null;
+		}
+
+		/**
 		 * Handle the event.
 		 *
 		 * @param $event
@@ -166,7 +205,16 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 				if ($related_paypal_order_id !== '' && ! in_array($related_paypal_order_id, $lookup_ids, true)) {
 					$lookup_ids[] = $related_paypal_order_id;
 				}
-				$this->log('Resource ID: ' . $resource_id . ( $related_paypal_order_id !== '' ? ' | related PayPal order id: ' . $related_paypal_order_id : '' ));
+				// CAPTURE.REFUNDED: resource.id is the refund id; capture lives on links[rel=up].
+				$capture_id_from_links = $this->try_extract_capture_id_from_resource( $event );
+				if ( $capture_id_from_links !== '' && ! in_array( $capture_id_from_links, $lookup_ids, true ) ) {
+					$lookup_ids[] = $capture_id_from_links;
+				}
+				$this->log(
+					'Resource ID: ' . $resource_id
+					. ( $related_paypal_order_id !== '' ? ' | related PayPal order id: ' . $related_paypal_order_id : '' )
+					. ( $capture_id_from_links !== '' ? ' | capture id from links: ' . $capture_id_from_links : '' )
+				);
 
 				if ( ! isset( $gateway_meta_keys[ $this->gateway_id ] ) ) {
 					$this->log( 'Invalid gateway ID: ' . $this->gateway_id );
@@ -183,12 +231,14 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 					throw new Exception( 'Order not found' );
 				}
 
-				$order_ids = $this->find_order_ids_by_paypal_lookup( $lookup_ids, $resource_meta_key, $capture_meta_key );
+				$order_ids             = $this->find_order_ids_by_paypal_lookup( $lookup_ids, $resource_meta_key, $capture_meta_key );
+				$resolved_via_fallback = false;
 
 				if ( empty( $order_ids ) ) {
 					$fallback_wc_order_id = $this->try_resolve_wc_order_id_from_capture_resource( $event );
 					if ( $fallback_wc_order_id > 0 ) {
-						$order_ids = array( $fallback_wc_order_id );
+						$order_ids             = array( $fallback_wc_order_id );
+						$resolved_via_fallback = true;
 						$this->log( 'Order candidate from custom_id/invoice_id: ' . $fallback_wc_order_id );
 					}
 				}
@@ -205,7 +255,8 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 					$stored_capture = ( $order && $capture_meta_key ) ? $order->get_meta( $capture_meta_key ) : '';
 					$id_matches     = in_array( $stored_sale, $lookup_ids, true )
 						|| ( $stored_capture !== '' && in_array( $stored_capture, $lookup_ids, true ) );
-					if ( ! $id_matches ) {
+					// Refund payloads may only match via custom_id/invoice_id (resource.id = refund id).
+					if ( ! $id_matches && ! $resolved_via_fallback ) {
 						$this->log( 'Resource ID mismatch' );
 						return;
 					}
@@ -307,8 +358,14 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 
 			$this->log('Processing refunded initiated.');
 
+			$refund_amount = $this->get_refund_amount_from_event( $event );
+			if ( $refund_amount === null ) {
+				$this->log( 'Processing refunded failed: missing amount in webhook resource.' );
+				throw new Exception( __( 'There was an error trying to make a refund: missing amount.', "paypal-brasil-para-woocommerce" ) );
+			}
+
 			// Check if is partial refund.
-			$partial_refund = paypal_brasil_money_format($order->get_total() - $order->get_total_refunded()) !== paypal_brasil_money_format($event['resource']['amount']['total']);
+			$partial_refund = paypal_brasil_money_format($order->get_total() - $order->get_total_refunded()) !== paypal_brasil_money_format($refund_amount);
 
 			// Check if the current status isn't refunded.
 			if (!in_array($order->get_status(), array('refunded'), true)) {
@@ -322,7 +379,7 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 				// Create the refund.
 				$refund = wc_create_refund(
 					array(
-						'amount' => wc_format_decimal($event['resource']['amount']['total']),
+						'amount' => wc_format_decimal($refund_amount),
 						'reason' => $partial_refund ? __('PayPal: The transaction was partially refunded.', "paypal-brasil-para-woocommerce") : __('PayPal: transaction refunded in full.', "paypal-brasil-para-woocommerce"),
 						'order_id' => $order->get_id(),
 						'refund_payment' => false,
@@ -545,6 +602,30 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 				$order->payment_complete();
 				$this->log('Processing completed finished.');
 			}
+		}
+
+		/**
+		 * When a Capture (Orders API v2) payment is refunded.
+		 *
+		 * @param WC_Order $order Order.
+		 * @param array    $event Webhook payload.
+		 *
+		 * @throws Exception
+		 */
+		public function handle_process_payment_capture_refunded( $order, $event ) {
+			$this->handle_process_payment_sale_refunded( $order, $event );
+		}
+
+		/**
+		 * When a Capture (Orders API v2) payment is reversed.
+		 *
+		 * @param WC_Order $order Order.
+		 * @param array    $event Webhook payload.
+		 *
+		 * @throws Exception
+		 */
+		public function handle_process_payment_capture_reversed( $order, $event ) {
+			$this->handle_process_payment_sale_reversed( $order, $event );
 		}
 
 

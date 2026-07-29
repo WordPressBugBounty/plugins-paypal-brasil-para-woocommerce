@@ -681,6 +681,60 @@ class PayPal_Brasil_Orders_api_V2
 	}
 
 	/**
+	 * Replace webhook event types (PATCH /v1/notifications/webhooks/{id}).
+	 *
+	 * @param string   $webhook_id Webhook id.
+	 * @param string[] $events     Event type names.
+	 *
+	 * @return array|mixed|object
+	 * @throws PayPal_Brasil_API_Exception
+	 * @throws PayPal_Brasil_Connection_Exception
+	 */
+	public function update_webhook_event_types( $webhook_id, $events ) {
+		$url = $this->get_base_url_webhook() . '/notifications/webhooks/' . $webhook_id;
+
+		$event_types = array();
+		foreach ( $events as $event ) {
+			$event_types[] = array(
+				'name' => $event,
+			);
+		}
+
+		$data = array(
+			array(
+				'op'    => 'replace',
+				'path'  => '/event_types',
+				'value' => $event_types,
+			),
+		);
+
+		$response = $this->do_request(
+			'UPDATE_WEBHOOK',
+			$url,
+			'PATCH',
+			$data,
+			array( 'PayPal-Partner-Attribution-Id' => $this->bn_code['ec'] )
+		);
+		$response_body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( is_wp_error( $response ) ) {
+			throw new PayPal_Brasil_Connection_Exception( $response->get_error_code(), $response->errors );
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+
+		if ( $code == 200 ) {
+			return $response_body;
+		}
+
+		throw new PayPal_Brasil_API_Exception(
+			$code,
+			__( 'Could not update webhook.', "paypal-brasil-para-woocommerce" ),
+			$response_body
+		);
+	}
+
+	/**
 	 * Refund a payment.
 	 *
 	 * @param $payment_id

@@ -3,7 +3,7 @@
 /**
  * Plugin Name: PayPal Brasil para WooCommerce
  * Description: Adicione facilmente opções de pagamento do PayPal à sua loja do WooCommerce.
- * Version: 1.7.3
+ * Version: 1.7.4
  * Author: PayPal
  * Author URI: https://paypal.com.br
  * Requires at least: 4.4
@@ -29,7 +29,9 @@ function paypal_brasil_init() {
 
 	// Define files.
 	define( 'PAYPAL_PAYMENTS_MAIN_FILE', __FILE__ );
-	define( 'PAYPAL_PAYMENTS_VERSION', '1.7.3' );
+	define( 'PAYPAL_PAYMENTS_VERSION', '1.7.4' );
+	// Bump when required webhook event_types change (triggers auto-sync for merchants).
+	define( 'PAYPAL_BRASIL_WEBHOOK_EVENTS_VERSION', 'capture-refund-v1' );
 	define( 'WC_PAYPAL_PLUGIN_SLUG', 'paypal-brasil-para-woocommerce' );
 	define( 'PAYPAL_BRASIL_PCP_API_BASE_URL', 'https://pcp-nuvem-prod.herokuapp.com' );
 	define( 'PAYPAL_BRASIL_PCP_API_VERIFY_URL', PAYPAL_BRASIL_PCP_API_BASE_URL . '/verify' );
@@ -151,10 +153,38 @@ function statistic_tag_update_plugin()
 }
 
 
+/**
+ * On this plugin upgrade, force webhook event sync on next request.
+ *
+ * @param WP_Upgrader $upgrader_object Upgrader instance.
+ * @param array       $options         Upgrade options.
+ */
+function paypal_brasil_maybe_reset_webhook_events_sync( $upgrader_object, $options ) {
+	if ( empty( $options['type'] ) || $options['type'] !== 'plugin' ) {
+		return;
+	}
+
+	$plugins = array();
+	if ( ! empty( $options['plugins'] ) && is_array( $options['plugins'] ) ) {
+		$plugins = $options['plugins'];
+	} elseif ( ! empty( $options['plugin'] ) ) {
+		$plugins = array( $options['plugin'] );
+	}
+
+	if ( ! in_array( paypal_brasil_get_main_plugin_file(), $plugins, true ) ) {
+		return;
+	}
+
+	delete_option( 'paypal_brasil_webhook_events_version' );
+	delete_transient( 'paypal_brasil_webhook_sync_backoff' );
+	delete_transient( 'paypal_brasil_webhook_sync_lock' );
+}
+
 // Init plugin.
 paypal_brasil_init();
 //register_activation_hook(PAYPAL_PAYMENTS_MAIN_FILE, 'statistic_tag_update_plugin', 10, 2);
-add_action('upgrader_process_complete', 'statistic_tag_update_plugin', 10, 2);
+add_action( 'upgrader_process_complete', 'statistic_tag_update_plugin', 10, 2 );
+add_action( 'upgrader_process_complete', 'paypal_brasil_maybe_reset_webhook_events_sync', 10, 2 );
 add_filter( 'load_textdomain_mofile', 'my_plugin_load_my_own_textdomain', 10, 2 );
 
 require_once plugin_dir_path(__FILE__) . 'includes/class-bcdc-logger-endpoint.php';
