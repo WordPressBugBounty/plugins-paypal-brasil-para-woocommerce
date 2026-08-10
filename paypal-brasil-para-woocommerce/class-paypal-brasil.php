@@ -81,6 +81,7 @@ class PayPal_Brasil
 		$allowed_gateways = array(
 			'PayPal_Brasil_SPB_Gateway',
 			'Paypal_Brasil_BCDC_Gateway',
+			'PayPal_Brasil_PIX_Gateway'
 		);
 
 		if ( ! paypal_brasil_is_pplus_retired() ) {
@@ -148,6 +149,8 @@ class PayPal_Brasil
 			$methods[] = 'PayPal_Brasil_Plus_Gateway';
 		}
 
+		$methods[] = 'PayPal_Brasil_PIX_Gateway';
+
 		return $methods;
 	}
 
@@ -162,6 +165,7 @@ class PayPal_Brasil
 			include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-plus-gateway.php';
 			include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-orders-gateway.php';
 			include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-bcdc-gateway.php';
+			include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-pix-gateway.php';
 			if (!in_array(get_woocommerce_currency(), self::get_allowed_currencies())) {
 				add_action('admin_notices', array($this, 'woocommerce_unavailable_currency'));
 			}

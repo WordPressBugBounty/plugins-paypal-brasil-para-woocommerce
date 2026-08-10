@@ -4,11 +4,22 @@
  * Released under the MIT License.
  */
 
+/*!
+ * clipboard.js v2.0.11
+ * https://clipboardjs.com/
+ *
+ * Licensed MIT © Zeno Rocha
+ */
+
 /*! vue */
 
 /*!******************************************!*\
   !*** ./node_modules/vue/dist/vue.esm.js ***!
   \******************************************/
+
+/*!**************************************************!*\
+  !*** ./node_modules/clipboard/dist/clipboard.js ***!
+  \**************************************************/
 
 /*!**************************************************************************!*\
   !*** ./node_modules/vue-class-component/dist/vue-class-component.esm.js ***!

@@ -44,6 +44,27 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 		}
 
 		/**
+		 * Identificador do resource no webhook: sale/capture id, ou Checkout Order ID em supplementary_data quando id não vier no payload.
+		 *
+		 * @param array $event Payload do evento.
+		 * @return string
+		 */
+		private function get_resource_id_from_event($event)
+		{
+			if (!empty($event['resource']['supplementary_data']['related_ids']['order_id'])) {
+				return $event['resource']['supplementary_data']['related_ids']['order_id'];
+			}
+			if (!empty($event['resource']['sale_id'])) {
+				return $event['resource']['sale_id'];
+			}
+			if (!empty($event['resource']['id'])) {
+				return $event['resource']['id'];
+			}
+
+			return '';
+		}
+
+		/**
 		 * Find order IDs by PayPal sale / capture meta (simple queries — nested meta_query can fail on HPOS).
 		 *
 		 * @param array  $lookup_ids          PayPal identifiers from the webhook.
@@ -179,7 +200,8 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 			$gateway_meta_keys = [
 				"paypal-brasil-plus-gateway" => 'wc_ppp_brasil_sale_id',
 				"paypal-brasil-spb-gateway" => 'paypal_brasil_sale_id',
-				"paypal-brasil-bcdc-gateway" => 'wc_bcdc_brasil_sale_id'
+				"paypal-brasil-bcdc-gateway" => 'wc_bcdc_brasil_sale_id',
+				"paypal-brasil-pix-gateway" => 'paypal_brasil_pix_sale_id'
 			];
 
 			$gateway_capture_meta_keys = array(
@@ -291,7 +313,7 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 				return;
 			}
 
-			$resource_id = isset($event['resource']['sale_id']) ? $event['resource']['sale_id'] : $event['resource']['id'];
+			$resource_id = $this->get_resource_id_from_event($event);
 
 			$this->log('Processing completed initiated.');
 			// Check if the current status isn't processing or completed.
@@ -582,7 +604,7 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 			}
 
 			$this->log('Processing completed initiated.');
-			$resource_id = isset($event['resource']['sale_id']) ? $event['resource']['sale_id'] : $event['resource']['id'];
+			$resource_id = $this->get_resource_id_from_event($event);
 			// Check if the current status isn't processing or completed.
 			if (
 				!in_array($order->get_status(), array(

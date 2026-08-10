@@ -1,0 +1,441 @@
+/*!***********************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/postcss-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/admin-options/admin-options-pix/admin-options-pix.scss ***!
+  \***********************************************************************************************************************************************************************************************/
+/**
+ * PIX Admin Options Styles
+ * Administrative interface styles for PIX configuration
+ */
+#paypal-brasil-pix-admin {
+  max-width: 1200px;
+  margin: 20px 0; }
+  #paypal-brasil-pix-admin .paypal-brasil-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+    #paypal-brasil-pix-admin .paypal-brasil-header img {
+      height: 40px;
+      margin-right: 15px; }
+    #paypal-brasil-pix-admin .paypal-brasil-header h2 {
+      margin: 0 0 5px 0;
+      color: #333;
+      font-size: 24px;
+      font-weight: 600; }
+    #paypal-brasil-pix-admin .paypal-brasil-header .description {
+      margin: 0;
+      color: #666;
+      font-size: 14px; }
+  #paypal-brasil-pix-admin .paypal-brasil-settings {
+    display: grid;
+    gap: 20px; }
+
+.pix-settings-section,
+.pix-credentials-section,
+.pix-configuration-section,
+.pix-preview-section,
+.pix-status-section {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+  .pix-settings-section h3,
+  .pix-credentials-section h3,
+  .pix-configuration-section h3,
+  .pix-preview-section h3,
+  .pix-status-section h3 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 10px; }
+  .pix-settings-section .form-table th,
+  .pix-credentials-section .form-table th,
+  .pix-configuration-section .form-table th,
+  .pix-preview-section .form-table th,
+  .pix-status-section .form-table th {
+    width: 200px;
+    font-weight: 600;
+    color: #333;
+    vertical-align: top;
+    padding-top: 15px; }
+    .pix-settings-section .form-table th label,
+    .pix-credentials-section .form-table th label,
+    .pix-configuration-section .form-table th label,
+    .pix-preview-section .form-table th label,
+    .pix-status-section .form-table th label {
+      font-weight: 600; }
+  .pix-settings-section .form-table td,
+  .pix-credentials-section .form-table td,
+  .pix-configuration-section .form-table td,
+  .pix-preview-section .form-table td,
+  .pix-status-section .form-table td {
+    padding: 10px 0; }
+    .pix-settings-section .form-table td input[type="text"],
+    .pix-settings-section .form-table td input[type="password"],
+    .pix-settings-section .form-table td input[type="number"],
+    .pix-settings-section .form-table td textarea,
+    .pix-settings-section .form-table td select,
+    .pix-credentials-section .form-table td input[type="text"],
+    .pix-credentials-section .form-table td input[type="password"],
+    .pix-credentials-section .form-table td input[type="number"],
+    .pix-credentials-section .form-table td textarea,
+    .pix-credentials-section .form-table td select,
+    .pix-configuration-section .form-table td input[type="text"],
+    .pix-configuration-section .form-table td input[type="password"],
+    .pix-configuration-section .form-table td input[type="number"],
+    .pix-configuration-section .form-table td textarea,
+    .pix-configuration-section .form-table td select,
+    .pix-preview-section .form-table td input[type="text"],
+    .pix-preview-section .form-table td input[type="password"],
+    .pix-preview-section .form-table td input[type="number"],
+    .pix-preview-section .form-table td textarea,
+    .pix-preview-section .form-table td select,
+    .pix-status-section .form-table td input[type="text"],
+    .pix-status-section .form-table td input[type="password"],
+    .pix-status-section .form-table td input[type="number"],
+    .pix-status-section .form-table td textarea,
+    .pix-status-section .form-table td select {
+      width: 100%;
+      max-width: 400px;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px; }
+      .pix-settings-section .form-table td input[type="text"]:focus,
+      .pix-settings-section .form-table td input[type="password"]:focus,
+      .pix-settings-section .form-table td input[type="number"]:focus,
+      .pix-settings-section .form-table td textarea:focus,
+      .pix-settings-section .form-table td select:focus,
+      .pix-credentials-section .form-table td input[type="text"]:focus,
+      .pix-credentials-section .form-table td input[type="password"]:focus,
+      .pix-credentials-section .form-table td input[type="number"]:focus,
+      .pix-credentials-section .form-table td textarea:focus,
+      .pix-credentials-section .form-table td select:focus,
+      .pix-configuration-section .form-table td input[type="text"]:focus,
+      .pix-configuration-section .form-table td input[type="password"]:focus,
+      .pix-configuration-section .form-table td input[type="number"]:focus,
+      .pix-configuration-section .form-table td textarea:focus,
+      .pix-configuration-section .form-table td select:focus,
+      .pix-preview-section .form-table td input[type="text"]:focus,
+      .pix-preview-section .form-table td input[type="password"]:focus,
+      .pix-preview-section .form-table td input[type="number"]:focus,
+      .pix-preview-section .form-table td textarea:focus,
+      .pix-preview-section .form-table td select:focus,
+      .pix-status-section .form-table td input[type="text"]:focus,
+      .pix-status-section .form-table td input[type="password"]:focus,
+      .pix-status-section .form-table td input[type="number"]:focus,
+      .pix-status-section .form-table td textarea:focus,
+      .pix-status-section .form-table td select:focus {
+        outline: none;
+        border-color: #32d74b;
+        box-shadow: 0 0 0 2px rgba(50, 215, 75, 0.2); }
+    .pix-settings-section .form-table td input[type="checkbox"],
+    .pix-credentials-section .form-table td input[type="checkbox"],
+    .pix-configuration-section .form-table td input[type="checkbox"],
+    .pix-preview-section .form-table td input[type="checkbox"],
+    .pix-status-section .form-table td input[type="checkbox"] {
+      margin-right: 8px; }
+    .pix-settings-section .form-table td .description,
+    .pix-credentials-section .form-table td .description,
+    .pix-configuration-section .form-table td .description,
+    .pix-preview-section .form-table td .description,
+    .pix-status-section .form-table td .description {
+      color: #666;
+      font-style: italic;
+      margin-top: 5px;
+      font-size: 13px;
+      line-height: 1.4; }
+    .pix-settings-section .form-table td .small-text,
+    .pix-credentials-section .form-table td .small-text,
+    .pix-configuration-section .form-table td .small-text,
+    .pix-preview-section .form-table td .small-text,
+    .pix-status-section .form-table td .small-text {
+      max-width: 100px; }
+    .pix-settings-section .form-table td .regular-text,
+    .pix-credentials-section .form-table td .regular-text,
+    .pix-configuration-section .form-table td .regular-text,
+    .pix-preview-section .form-table td .regular-text,
+    .pix-status-section .form-table td .regular-text {
+      max-width: 300px; }
+    .pix-settings-section .form-table td .large-text,
+    .pix-credentials-section .form-table td .large-text,
+    .pix-configuration-section .form-table td .large-text,
+    .pix-preview-section .form-table td .large-text,
+    .pix-status-section .form-table td .large-text {
+      max-width: 500px;
+      min-height: 80px; }
+
+.credentials-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd; }
+  .credentials-tabs .tab-button {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.2s; }
+    .credentials-tabs .tab-button:hover {
+      color: #32d74b; }
+    .credentials-tabs .tab-button.active {
+      color: #32d74b;
+      border-bottom-color: #32d74b; }
+
+.credentials-content .credentials-tab {
+  display: block; }
+
+.pix-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px; }
+  @media (max-width: 768px) {
+    .pix-preview {
+      grid-template-columns: 1fr; } }
+  .pix-preview .preview-checkout,
+  .pix-preview .preview-success {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #ddd; }
+    .pix-preview .preview-checkout h4,
+    .pix-preview .preview-success h4 {
+      margin: 0 0 15px 0;
+      font-size: 14px;
+      color: #333; }
+  .pix-preview .payment-method-preview {
+    background: white;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #ddd; }
+    .pix-preview .payment-method-preview input[type="radio"] {
+      margin-right: 10px; }
+    .pix-preview .payment-method-preview label {
+      font-weight: 600;
+      color: #333; }
+    .pix-preview .payment-method-preview .payment-description {
+      margin-top: 10px;
+      padding-left: 25px;
+      color: #666;
+      font-size: 13px; }
+  .pix-preview .qr-code-placeholder {
+    text-align: center; }
+    .pix-preview .qr-code-placeholder .qr-placeholder-box {
+      width: 120px;
+      height: 120px;
+      background: white;
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      color: #666;
+      font-size: 12px; }
+    .pix-preview .qr-code-placeholder p {
+      margin: 0;
+      font-size: 12px;
+      color: #666; }
+
+.status-indicators {
+  display: grid;
+  gap: 10px; }
+  .status-indicators .status-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border-left: 4px solid transparent; }
+    .status-indicators .status-item .status-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      font-size: 12px;
+      font-weight: bold; }
+      .status-indicators .status-item .status-icon.status-ok {
+        background: #32d74b;
+        color: white; }
+      .status-indicators .status-item .status-icon.status-error {
+        background: #dc3545;
+        color: white; }
+      .status-indicators .status-item .status-icon.status-warning {
+        background: #ffc107;
+        color: white; }
+    .status-indicators .status-item .status-text {
+      font-size: 14px;
+      color: #333; }
+    .status-indicators .status-item:has(.status-ok) {
+      border-left-color: #32d74b; }
+    .status-indicators .status-item:has(.status-error) {
+      border-left-color: #dc3545; }
+    .status-indicators .status-item:has(.status-warning) {
+      border-left-color: #ffc107; }
+
+.pix-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd; }
+  .pix-actions .button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s; }
+    .pix-actions .button.button-primary {
+      background: #32d74b;
+      color: white; }
+      .pix-actions .button.button-primary:hover {
+        background: #28a745; }
+      .pix-actions .button.button-primary:disabled {
+        background: #ccc;
+        cursor: not-allowed; }
+    .pix-actions .button.button-secondary {
+      background: #6c757d;
+      color: white; }
+      .pix-actions .button.button-secondary:hover {
+        background: #5a6268; }
+    .pix-actions .button.button-danger {
+      background: #dc3545;
+      color: white; }
+      .pix-actions .button.button-danger:hover {
+        background: #bd2130; }
+
+.save-message {
+  position: fixed;
+  top: 32px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease-out; }
+  .save-message.success {
+    background: #32d74b;
+    color: white; }
+  .save-message.error {
+    background: #dc3545;
+    color: white; }
+  .save-message.warning {
+    background: #ffc107;
+    color: #333; }
+  .save-message.loading {
+    background: #17a2b8;
+    color: white; }
+
+.loading-overlay {
+  position: relative; }
+  .loading-overlay::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px; }
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0; }
+  to {
+    transform: translateX(0);
+    opacity: 1; } }
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1; }
+  50% {
+    opacity: 0.5; } }
+
+.loading {
+  animation: pulse 1.5s ease-in-out infinite; }
+
+@media (max-width: 768px) {
+  #paypal-brasil-pix-admin {
+    margin: 10px; }
+    #paypal-brasil-pix-admin .paypal-brasil-header {
+      flex-direction: column;
+      text-align: center;
+      padding: 15px; }
+      #paypal-brasil-pix-admin .paypal-brasil-header img {
+        margin-right: 0;
+        margin-bottom: 10px; }
+    #paypal-brasil-pix-admin .pix-settings-section,
+    #paypal-brasil-pix-admin .pix-credentials-section,
+    #paypal-brasil-pix-admin .pix-configuration-section,
+    #paypal-brasil-pix-admin .pix-preview-section,
+    #paypal-brasil-pix-admin .pix-status-section {
+      padding: 15px; }
+    #paypal-brasil-pix-admin .form-table th,
+    #paypal-brasil-pix-admin .form-table td {
+      display: block;
+      width: 100%;
+      padding: 5px 0; }
+    #paypal-brasil-pix-admin .form-table th {
+      font-weight: 600;
+      margin-bottom: 5px; }
+    #paypal-brasil-pix-admin .form-table td input[type="text"],
+    #paypal-brasil-pix-admin .form-table td input[type="password"],
+    #paypal-brasil-pix-admin .form-table td input[type="number"],
+    #paypal-brasil-pix-admin .form-table td textarea,
+    #paypal-brasil-pix-admin .form-table td select {
+      max-width: 100%; }
+    #paypal-brasil-pix-admin .credentials-tabs .tab-button {
+      flex: 1;
+      text-align: center; }
+    #paypal-brasil-pix-admin .pix-actions {
+      flex-direction: column; }
+      #paypal-brasil-pix-admin .pix-actions .button {
+        justify-content: center; } }
+
+.wp-admin #paypal-brasil-pix-admin .form-table th {
+  padding-left: 0; }
+
+.wp-admin #paypal-brasil-pix-admin .button {
+  height: auto;
+  line-height: 1.4; }
+
+@media print {
+  #paypal-brasil-pix-admin .pix-actions,
+  #paypal-brasil-pix-admin .credentials-tabs,
+  #paypal-brasil-pix-admin .save-message {
+    display: none; }
+  #paypal-brasil-pix-admin .pix-settings-section,
+  #paypal-brasil-pix-admin .pix-credentials-section,
+  #paypal-brasil-pix-admin .pix-configuration-section,
+  #paypal-brasil-pix-admin .pix-status-section {
+    -moz-column-break-inside: avoid;
+         break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #000; } }
+
+
+/*# sourceMappingURL=admin-options-pix.css.map*/

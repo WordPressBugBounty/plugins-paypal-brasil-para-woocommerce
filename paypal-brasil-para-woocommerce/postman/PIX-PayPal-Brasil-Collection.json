@@ -1,0 +1,679 @@
+{
+  "info": {
+    "name": "PIX PayPal Brasil - Complete Tests",
+    "description": "Collection completa para testar implementação PIX do PayPal Brasil WooCommerce",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://seusite.com",
+      "type": "string"
+    },
+    {
+      "key": "paypal_base_url",
+      "value": "https://api.sandbox.paypal.com",
+      "type": "string"
+    },
+    {
+      "key": "paypal_client_id",
+      "value": "SEU_CLIENT_ID_SANDBOX",
+      "type": "string"
+    },
+    {
+      "key": "paypal_client_secret",
+      "value": "SEU_CLIENT_SECRET_SANDBOX",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Get PayPal Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Access token received\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.access_token).to.exist;",
+                  "    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+                  "    console.log(\"Access token saved:\", jsonData.access_token.substring(0, 20) + \"...\");",
+                  "});",
+                  "",
+                  "pm.test(\"Token type is Bearer\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token_type).to.eql(\"Bearer\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Authorization",
+                "value": "Basic {{$base64({{paypal_client_id}}:{{paypal_client_secret}})}}"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{paypal_base_url}}/v1/oauth2/token",
+              "host": ["{{paypal_base_url}}"],
+              "path": ["v1", "oauth2", "token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. WordPress Endpoints",
+      "item": [
+        {
+          "name": "Test Webhook Endpoint",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Webhook endpoint accessible\", function () {",
+                  "    // 200 = OK, 405 = Method not allowed (mas endpoint existe)",
+                  "    pm.expect([200, 405]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time acceptable\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PAYPAL-TRANSMISSION-ID",
+                "value": "test-transmission-{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"WH-TEST-{{$timestamp}}\",\n  \"event_type\": \"PAYMENT.CAPTURE.COMPLETED\",\n  \"resource\": {\n    \"id\": \"TEST-PAYMENT-ID\",\n    \"status\": \"COMPLETED\",\n    \"amount\": {\n      \"currency_code\": \"BRL\",\n      \"value\": \"10.00\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/wc-api/paypal_brasil_pix_webhook",
+              "host": ["{{base_url}}"],
+              "path": ["wc-api", "paypal_brasil_pix_webhook"]
+            }
+          }
+        },
+        {
+          "name": "Check WordPress Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"WordPress is accessible\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Contains WordPress content\", function () {",
+                  "    pm.expect(pm.response.text()).to.include(\"wp-content\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}",
+              "host": ["{{base_url}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. PayPal PIX API",
+      "item": [
+        {
+          "name": "Create PIX Payment - CPF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Order created successfully\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Order ID received\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.exist;",
+                  "    pm.collectionVariables.set(\"order_id\", jsonData.id);",
+                  "    console.log(\"Order ID saved:\", jsonData.id);",
+                  "});",
+                  "",
+                  "pm.test(\"PIX payment source configured\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.payment_source.pix).to.exist;",
+                  "});",
+                  "",
+                  "pm.test(\"QR Code data present\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.payment_source.pix.qr_code) {",
+                  "        pm.expect(jsonData.payment_source.pix.qr_code).to.exist;",
+                  "        console.log(\"QR Code received:\", jsonData.payment_source.pix.qr_code.substring(0, 50) + \"...\");",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "PayPal-Partner-Attribution-Id",
+                "value": "WooCommerceBrazil_Ecom_PIX"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"intent\": \"CAPTURE\",\n  \"purchase_units\": [\n    {\n      \"reference_id\": \"order_{{$timestamp}}\",\n      \"amount\": {\n        \"currency_code\": \"BRL\",\n        \"value\": \"10.00\"\n      },\n      \"description\": \"Produto Teste PIX - CPF\",\n      \"custom_id\": \"wc_order_{{$timestamp}}\",\n      \"invoice_id\": \"invoice_{{$timestamp}}\"\n    }\n  ],\n  \"payment_source\": {\n    \"pix\": {\n      \"country_code\": \"BR\",\n      \"name\": \"João Silva\",\n      \"email\": \"joao@teste.com.br\",\n      \"tax_info\": {\n        \"tax_id\": \"12345678909\",\n        \"tax_id_type\": \"BR_CPF\"\n      }\n    }\n  },\n  \"application_context\": {\n    \"brand_name\": \"Loja Teste PIX\",\n    \"locale\": \"pt-BR\",\n    \"landing_page\": \"NO_PREFERENCE\",\n    \"shipping_preference\": \"NO_SHIPPING\",\n    \"user_action\": \"PAY_NOW\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{paypal_base_url}}/v2/checkout/orders",
+              "host": ["{{paypal_base_url}}"],
+              "path": ["v2", "checkout", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Create PIX Payment - CNPJ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"CNPJ Order created successfully\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"CNPJ Order ID received\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.exist;",
+                  "    pm.collectionVariables.set(\"cnpj_order_id\", jsonData.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "PayPal-Partner-Attribution-Id",
+                "value": "WooCommerceBrazil_Ecom_PIX"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"intent\": \"CAPTURE\",\n  \"purchase_units\": [\n    {\n      \"reference_id\": \"cnpj_order_{{$timestamp}}\",\n      \"amount\": {\n        \"currency_code\": \"BRL\",\n        \"value\": \"25.00\"\n      },\n      \"description\": \"Produto Teste PIX - CNPJ\",\n      \"custom_id\": \"wc_cnpj_order_{{$timestamp}}\"\n    }\n  ],\n  \"payment_source\": {\n    \"pix\": {\n      \"country_code\": \"BR\",\n      \"name\": \"Empresa Teste LTDA\",\n      \"email\": \"empresa@teste.com.br\",\n      \"tax_info\": {\n        \"tax_id\": \"11222333000181\",\n        \"tax_id_type\": \"BR_CNPJ\"\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{paypal_base_url}}/v2/checkout/orders",
+              "host": ["{{paypal_base_url}}"],
+              "path": ["v2", "checkout", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Get Payment Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Order status retrieved\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Order status is valid\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var validStatuses = [\"CREATED\", \"SAVED\", \"APPROVED\", \"VOIDED\", \"COMPLETED\"];",
+                  "    pm.expect(validStatuses).to.include(jsonData.status);",
+                  "    console.log(\"Order status:\", jsonData.status);",
+                  "});",
+                  "",
+                  "pm.test(\"PIX payment source exists\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.payment_source.pix).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{paypal_base_url}}/v2/checkout/orders/{{order_id}}",
+              "host": ["{{paypal_base_url}}"],
+              "path": ["v2", "checkout", "orders", "{{order_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Capture Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Payment captured successfully\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Capture ID received\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.purchase_units && jsonData.purchase_units[0].payments && jsonData.purchase_units[0].payments.captures) {",
+                  "        pm.expect(jsonData.purchase_units[0].payments.captures[0].id).to.exist;",
+                  "        pm.collectionVariables.set(\"payment_id\", jsonData.purchase_units[0].payments.captures[0].id);",
+                  "        console.log(\"Payment ID saved:\", jsonData.purchase_units[0].payments.captures[0].id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PayPal-Partner-Attribution-Id",
+                "value": "WooCommerceBrazil_Ecom_PIX"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note_to_payer\": \"Pagamento PIX processado com sucesso via teste Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{paypal_base_url}}/v2/checkout/orders/{{order_id}}/capture",
+              "host": ["{{paypal_base_url}}"],
+              "path": ["v2", "checkout", "orders", "{{order_id}}", "capture"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Webhook Simulation",
+      "item": [
+        {
+          "name": "Webhook - Payment Completed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Webhook processed successfully\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response indicates success\", function () {",
+                  "    var responseText = pm.response.text();",
+                  "    // Verificar se a resposta indica sucesso",
+                  "    pm.expect(responseText.toLowerCase()).to.satisfy(function(text) {",
+                  "        return text.includes('success') || text.includes('ok') || text.includes('processed');",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PAYPAL-TRANSMISSION-ID",
+                "value": "webhook-completed-{{$timestamp}}"
+              },
+              {
+                "key": "PAYPAL-CERT-ID",
+                "value": "test-cert-id"
+              },
+              {
+                "key": "PAYPAL-AUTH-ALGO",
+                "value": "SHA256withRSA"
+              },
+              {
+                "key": "PAYPAL-TRANSMISSION-SIG",
+                "value": "test-signature"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"WH-COMPLETED-{{$timestamp}}\",\n  \"event_version\": \"1.0\",\n  \"create_time\": \"{{$isoTimestamp}}\",\n  \"resource_type\": \"capture\",\n  \"event_type\": \"PAYMENT.CAPTURE.COMPLETED\",\n  \"summary\": \"Payment completed via PIX\",\n  \"resource\": {\n    \"id\": \"{{payment_id}}\",\n    \"status\": \"COMPLETED\",\n    \"amount\": {\n      \"currency_code\": \"BRL\",\n      \"value\": \"10.00\"\n    },\n    \"custom_id\": \"wc_order_{{$timestamp}}\",\n    \"invoice_id\": \"invoice_{{$timestamp}}\",\n    \"create_time\": \"{{$isoTimestamp}}\",\n    \"update_time\": \"{{$isoTimestamp}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/wc-api/paypal_brasil_pix_webhook",
+              "host": ["{{base_url}}"],
+              "path": ["wc-api", "paypal_brasil_pix_webhook"]
+            }
+          }
+        },
+        {
+          "name": "Webhook - Payment Denied",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Webhook denial processed\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PAYPAL-TRANSMISSION-ID",
+                "value": "webhook-denied-{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"WH-DENIED-{{$timestamp}}\",\n  \"event_type\": \"PAYMENT.CAPTURE.DENIED\",\n  \"resource\": {\n    \"id\": \"{{payment_id}}\",\n    \"status\": \"DENIED\",\n    \"amount\": {\n      \"currency_code\": \"BRL\",\n      \"value\": \"10.00\"\n    },\n    \"custom_id\": \"wc_order_{{$timestamp}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/wc-api/paypal_brasil_pix_webhook",
+              "host": ["{{base_url}}"],
+              "path": ["wc-api", "paypal_brasil_pix_webhook"]
+            }
+          }
+        },
+        {
+          "name": "Webhook - Payment Pending",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PAYPAL-TRANSMISSION-ID",
+                "value": "webhook-pending-{{$timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"WH-PENDING-{{$timestamp}}\",\n  \"event_type\": \"PAYMENT.CAPTURE.PENDING\",\n  \"resource\": {\n    \"id\": \"{{payment_id}}\",\n    \"status\": \"PENDING\",\n    \"amount\": {\n      \"currency_code\": \"BRL\",\n      \"value\": \"10.00\"\n    },\n    \"custom_id\": \"wc_order_{{$timestamp}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/wc-api/paypal_brasil_pix_webhook",
+              "host": ["{{base_url}}"],
+              "path": ["wc-api", "paypal_brasil_pix_webhook"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Validation Tests",
+      "item": [
+        {
+          "name": "Invalid CPF Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Invalid CPF rejected\", function () {",
+                  "    // Deve retornar erro 400 ou 422",
+                  "    pm.expect([400, 422, 500]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message present\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message || jsonData.error).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "PayPal-Partner-Attribution-Id",
+                "value": "WooCommerceBrazil_Ecom_PIX"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"intent\": \"CAPTURE\",\n  \"purchase_units\": [\n    {\n      \"amount\": {\n        \"currency_code\": \"BRL\",\n        \"value\": \"10.00\"\n      }\n    }\n  ],\n  \"payment_source\": {\n    \"pix\": {\n      \"country_code\": \"BR\",\n      \"name\": \"Teste Inválido\",\n      \"email\": \"invalido@teste.com.br\",\n      \"tax_info\": {\n        \"tax_id\": \"11111111111\",\n        \"tax_id_type\": \"BR_CPF\"\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{paypal_base_url}}/v2/checkout/orders",
+              "host": ["{{paypal_base_url}}"],
+              "path": ["v2", "checkout", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Invalid Currency Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Invalid currency rejected\", function () {",
+                  "    pm.expect([400, 422, 500]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "PayPal-Partner-Attribution-Id",
+                "value": "WooCommerceBrazil_Ecom_PIX"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"intent\": \"CAPTURE\",\n  \"purchase_units\": [\n    {\n      \"amount\": {\n        \"currency_code\": \"USD\",\n        \"value\": \"10.00\"\n      }\n    }\n  ],\n  \"payment_source\": {\n    \"pix\": {\n      \"country_code\": \"BR\",\n      \"name\": \"João Silva\",\n      \"email\": \"joao@teste.com.br\",\n      \"tax_info\": {\n        \"tax_id\": \"12345678909\",\n        \"tax_id_type\": \"BR_CPF\"\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{paypal_base_url}}/v2/checkout/orders",
+              "host": ["{{paypal_base_url}}"],
+              "path": ["v2", "checkout", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Zero Amount Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Zero amount rejected\", function () {",
+                  "    pm.expect([400, 422, 500]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "PayPal-Partner-Attribution-Id",
+                "value": "WooCommerceBrazil_Ecom_PIX"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"intent\": \"CAPTURE\",\n  \"purchase_units\": [\n    {\n      \"amount\": {\n        \"currency_code\": \"BRL\",\n        \"value\": \"0.00\"\n      }\n    }\n  ],\n  \"payment_source\": {\n    \"pix\": {\n      \"country_code\": \"BR\",\n      \"name\": \"João Silva\",\n      \"email\": \"joao@teste.com.br\",\n      \"tax_info\": {\n        \"tax_id\": \"12345678909\",\n        \"tax_id_type\": \"BR_CPF\"\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{paypal_base_url}}/v2/checkout/orders",
+              "host": ["{{paypal_base_url}}"],
+              "path": ["v2", "checkout", "orders"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Gerar timestamp para testes únicos",
+          "pm.globals.set(\"timestamp\", Date.now());",
+          "",
+          "// Gerar ISO timestamp",
+          "pm.globals.set(\"isoTimestamp\", new Date().toISOString());",
+          "",
+          "// Log do teste sendo executado",
+          "console.log(\"Executando:\", pm.info.requestName);"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Log global de tempo de resposta",
+          "pm.test(\"Response time acceptable\", function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(10000);",
+          "});",
+          "",
+          "// Log de debug",
+          "if (pm.response.code >= 400) {",
+          "    console.log(\"Error Response:\", pm.response.text());",
+          "}"
+        ]
+      }
+    }
+  ]
+}

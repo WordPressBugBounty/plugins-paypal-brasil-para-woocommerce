@@ -28,6 +28,7 @@ class PayPal_Brasil_Orders_api_V2
 		'shortcut' => 'WooCommerceBrazil_Ecom_ECS',
 		'plus' => 'WooCommerceBR_Ecom_PPPlus',
 		'bcdc' => 'WooCommerceBrazil_Ecom_BCDC',
+		'pix' => 'WooCommerceBrazil_Ecom_PIX',
 		'default' => 'WooCommerceBrazil_Ecom_EC',
 	);
 
@@ -233,6 +234,85 @@ class PayPal_Brasil_Orders_api_V2
 		throw new PayPal_Brasil_API_Exception(
 			$code,
 			__('Unable to create order.', "paypal-brasil-para-woocommerce"),
+			$response_body
+		);
+	}
+
+	/**
+	 * Create a PIX payment.
+	 *
+	 * @param array $data
+	 * @param array $headers
+	 *
+	 * @return mixed
+	 * @throws PayPal_Brasil_API_Exception
+	 * @throws PayPal_Brasil_Connection_Exception
+	 */
+	public function create_payment_pix($data, $headers = array())
+	{
+		$url = $this->get_base_url() . '/checkout/orders';
+
+		// Add PIX BN code
+		$headers['PayPal-Partner-Attribution-Id'] = $this->bn_code['pix'];
+
+		// Get response create_payment.
+		$response = $this->do_request('CREATE_PIX_ORDER', $url, 'POST', $data, $headers);
+		$response_body = json_decode(wp_remote_retrieve_body($response), true);
+
+		// Check if is WP_Error
+		if (is_wp_error($response)) {
+			throw new PayPal_Brasil_Connection_Exception($response->get_error_code(), $response->errors);
+		}
+		$code = wp_remote_retrieve_response_code($response);
+
+		// Check if response was created.
+		if ($code === 201 || $code === 200) {
+			return $response_body;
+		}
+
+		throw new PayPal_Brasil_API_Exception(
+			$code,
+			__('Unable to create PIX order.', "paypal-brasil-para-woocommerce"),
+			$response_body
+		);
+	}
+
+	/**
+	 * Get PIX payment status.
+	 *
+	 * @param $order_id
+	 * @param array $headers
+	 *
+	 * @return array|mixed|object
+	 * @throws PayPal_Brasil_API_Exception
+	 * @throws PayPal_Brasil_Connection_Exception
+	 */
+	public function get_pix_payment_status($order_id, $headers = array())
+	{
+		$url = $this->get_base_url() . '/checkout/orders/' . $order_id;
+
+		// Add PIX BN code
+		$headers['PayPal-Partner-Attribution-Id'] = $this->bn_code['pix'];
+
+		// Get response.
+		$response = $this->do_request('GET_PIX_ORDER', $url, 'GET', array(), $headers);
+		$response_body = json_decode(wp_remote_retrieve_body($response), true);
+
+		// Check if is WP_Error
+		if (is_wp_error($response)) {
+			throw new PayPal_Brasil_Connection_Exception($response->get_error_code(), $response->errors);
+		}
+
+		$code = wp_remote_retrieve_response_code($response);
+
+		// Check if response was created.
+		if ($code === 200 || $code === 201) {
+			return $response_body;
+		}
+
+		throw new PayPal_Brasil_API_Exception(
+			$code,
+			__('Unable to obtain PIX payment details.', "paypal-brasil-para-woocommerce"),
 			$response_body
 		);
 	}

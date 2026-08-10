@@ -3,7 +3,7 @@
 /**
  * Plugin Name: PayPal Brasil para WooCommerce
  * Description: Adicione facilmente opções de pagamento do PayPal à sua loja do WooCommerce.
- * Version: 1.7.4
+ * Version: 1.7.5
  * Author: PayPal
  * Author URI: https://paypal.com.br
  * Requires at least: 4.4
@@ -29,7 +29,7 @@ function paypal_brasil_init() {
 
 	// Define files.
 	define( 'PAYPAL_PAYMENTS_MAIN_FILE', __FILE__ );
-	define( 'PAYPAL_PAYMENTS_VERSION', '1.7.4' );
+	define( 'PAYPAL_PAYMENTS_VERSION', '1.7.5' );
 	// Bump when required webhook event_types change (triggers auto-sync for merchants).
 	define( 'PAYPAL_BRASIL_WEBHOOK_EVENTS_VERSION', 'capture-refund-v1' );
 	define( 'WC_PAYPAL_PLUGIN_SLUG', 'paypal-brasil-para-woocommerce' );
@@ -106,17 +106,19 @@ function statistic_tag_update_plugin()
             $gateway_settings_bcdc = get_option( 'woocommerce_paypal-brasil-bcdc-gateway_settings' );
             $gateway_settings_spb = get_option( 'woocommerce_paypal-brasil-spb-gateway_settings' );
             $gateway_settings_ppp = get_option( 'woocommerce_paypal-brasil-plus-gateway_settings' );
-    		$plugin_id = get_option('plugin_id');
-			
+            $gateway_settings_pix = get_option( 'woocommerce_paypal-brasil-pix-gateway_settings' );
+        $plugin_id = get_option('plugin_id');
+   
             // Verificar se o método de pagamento desejado está presente na lista de métodos ativos
             $data = array(
-				'uuid' => $plugin_id ? $plugin_id : null,
+    'uuid' => $plugin_id ? $plugin_id : null,
                 'status' => 'updated',
                 'store_url' => home_url(),
-				'plugin_version' => PAYPAL_PAYMENTS_VERSION, 
+				'plugin_version' => PAYPAL_PAYMENTS_VERSION,
                 'spb_enabled' => isset($gateway_settings_spb) ? $gateway_settings_spb['enabled'] : false,
                 'ppp_enabled' => isset($gateway_settings_ppp) ? $gateway_settings_ppp['enabled'] : false,
                 'bcdc_enabled' => isset($gateway_settings_bcdc) ? $gateway_settings_bcdc['enabled'] : false,
+                'pix_enabled' => isset($gateway_settings_pix) ? $gateway_settings_pix['enabled'] : false,
                 'autoupdate_enabled' => paypal_brasil_is_autoupdate_enabled(),
             );
     
