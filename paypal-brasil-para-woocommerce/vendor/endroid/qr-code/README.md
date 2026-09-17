@@ -16,7 +16,7 @@ as PNG, SVG, EPS or in binary format.
 
 ## Sponsored by
 
-[![Blackfire.io](.github/blackfire.png)](https://www.blackfire.io)
+[![Blackfire.io](assets/blackfire.png)](https://www.blackfire.io)
 
 ## Installation
 
@@ -32,10 +32,10 @@ Use [Composer](https://getcomposer.org/) to install the library. Also make sure 
 ```php
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\Label\LabelAlignment;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
+use Endroid\QrCode\Label\Alignment\LabelAlignmentCenter;
 use Endroid\QrCode\Label\Font\NotoSans;
-use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use Endroid\QrCode\Writer\PngWriter;
 
 $result = Builder::create()
@@ -43,16 +43,16 @@ $result = Builder::create()
     ->writerOptions([])
     ->data('Custom QR code contents')
     ->encoding(new Encoding('UTF-8'))
-    ->errorCorrectionLevel(ErrorCorrectionLevel::High)
+    ->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
     ->size(300)
     ->margin(10)
-    ->roundBlockSizeMode(RoundBlockSizeMode::Margin)
+    ->roundBlockSizeMode(new RoundBlockSizeModeMargin())
     ->logoPath(__DIR__.'/assets/symfony.png')
     ->logoResizeToWidth(50)
     ->logoPunchoutBackground(true)
     ->labelText('This is the label')
     ->labelFont(new NotoSans(20))
-    ->labelAlignment(LabelAlignment::Center)
+    ->labelAlignment(new LabelAlignmentCenter())
     ->validateResult(false)
     ->build();
 ```
@@ -62,11 +62,11 @@ $result = Builder::create()
 ```php
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelLow;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Label\Label;
 use Endroid\QrCode\Logo\Logo;
-use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\Writer\ValidationException;
 
@@ -75,10 +75,10 @@ $writer = new PngWriter();
 // Create QR code
 $qrCode = QrCode::create('Life is too short to be generating QR codes')
     ->setEncoding(new Encoding('UTF-8'))
-    ->setErrorCorrectionLevel(ErrorCorrectionLevel::Low)
+    ->setErrorCorrectionLevel(new ErrorCorrectionLevelLow())
     ->setSize(300)
     ->setMargin(10)
-    ->setRoundBlockSizeMode(RoundBlockSizeMode::Margin)
+    ->setRoundBlockSizeMode(new RoundBlockSizeModeMargin())
     ->setForegroundColor(new Color(0, 0, 0))
     ->setBackgroundColor(new Color(255, 255, 255));
 
@@ -113,7 +113,7 @@ $result->saveToFile(__DIR__.'/qrcode.png');
 $dataUri = $result->getDataUri();
 ```
 
-![QR Code](.github/example.png)
+![QR Code](https://endroid.nl/qr-code/default/Life%20is%20too%20short%20to%20be%20generating%20QR%20codes)
 
 ### Writer options
 
@@ -133,7 +133,6 @@ found as a constant prefixed with WRITER_OPTION_ in the writer class.
   * `exclude_xml_declaration`: exclude XML declaration (default: false)
   * `exclude_svg_width_and_height`: exclude width and height (default: false)
   * `force_xlink_href`: forces xlink namespace in case of compatibility issues (default: false)
-  * `compact`: create using `path` element, otherwise use `defs` and `use` (default: true)
 * `WebPWriter`
   * `quality`: image quality (0-100, default: 80)
 

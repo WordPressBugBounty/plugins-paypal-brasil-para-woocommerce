@@ -6,6 +6,8 @@ namespace Endroid\QrCode\Label;
 
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Color\ColorInterface;
+use Endroid\QrCode\Label\Alignment\LabelAlignmentCenter;
+use Endroid\QrCode\Label\Alignment\LabelAlignmentInterface;
 use Endroid\QrCode\Label\Font\Font;
 use Endroid\QrCode\Label\Font\FontInterface;
 use Endroid\QrCode\Label\Margin\Margin;
@@ -13,13 +15,22 @@ use Endroid\QrCode\Label\Margin\MarginInterface;
 
 final class Label implements LabelInterface
 {
+    private FontInterface $font;
+    private LabelAlignmentInterface $alignment;
+    private MarginInterface $margin;
+    private ColorInterface $textColor;
+
     public function __construct(
         private string $text,
-        private FontInterface $font = new Font(__DIR__.'/../../assets/noto_sans.otf', 16),
-        private LabelAlignment $alignment = LabelAlignment::Center,
-        private MarginInterface $margin = new Margin(0, 10, 10, 10),
-        private ColorInterface $textColor = new Color(0, 0, 0)
+        FontInterface $font = null,
+        LabelAlignmentInterface $alignment = null,
+        MarginInterface $margin = null,
+        ColorInterface $textColor = null
     ) {
+        $this->font = $font ?? new Font(__DIR__.'/../../assets/noto_sans.otf', 16);
+        $this->alignment = $alignment ?? new LabelAlignmentCenter();
+        $this->margin = $margin ?? new Margin(0, 10, 10, 10);
+        $this->textColor = $textColor ?? new Color(0, 0, 0);
     }
 
     public static function create(string $text): self
@@ -51,12 +62,12 @@ final class Label implements LabelInterface
         return $this;
     }
 
-    public function getAlignment(): LabelAlignment
+    public function getAlignment(): LabelAlignmentInterface
     {
         return $this->alignment;
     }
 
-    public function setAlignment(LabelAlignment $alignment): self
+    public function setAlignment(LabelAlignmentInterface $alignment): self
     {
         $this->alignment = $alignment;
 

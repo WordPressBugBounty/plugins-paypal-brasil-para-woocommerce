@@ -197,6 +197,51 @@ class PayPal_Brasil_Orders_api_V2
 	}
 
 	/**
+	 * Get the client token (browser-safe) used to initialize the PayPal JS SDK v6
+	 * on the frontend for the Basic Apple Pay integration.
+	 *
+	 * Diferente do Access Token (usado somente no backend), o Client Token é um
+	 * token de escopo reduzido, seguro para o navegador, obtido com
+	 * `response_type=client_token&intent=sdk_init`.
+	 *
+	 * @return array Resposta completa do endpoint (contém `access_token`, que é o client token).
+	 * @throws PayPal_Brasil_API_Exception
+	 * @throws PayPal_Brasil_Connection_Exception
+	 */
+	public function get_client_token() {
+		$url = $this->get_base_url_authentication() . '/oauth2/token';
+
+		// O Apple Pay (Basic) não possui BN Code oficial: omitimos o header
+		// PayPal-Partner-Attribution-Id, conforme orientação do PayPal.
+		$headers = array(
+			'Authorization' => 'Basic ' . base64_encode( $this->client_id . ':' . $this->secret ),
+			'Content-Type'  => 'application/x-www-form-urlencoded',
+		);
+
+		$data = 'grant_type=client_credentials&response_type=client_token&intent=sdk_init';
+
+		// Não loga a resposta pois ela contém o token (segurança).
+		$response      = $this->do_request( 'GET_CLIENT_TOKEN', $url, 'POST', $data, $headers, false, false );
+		$response_body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( is_wp_error( $response ) ) {
+			throw new PayPal_Brasil_Connection_Exception( $response->get_error_code(), $response->errors );
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+
+		if ( $code === 200 ) {
+			return $response_body;
+		}
+
+		throw new PayPal_Brasil_API_Exception(
+			$code,
+			__( 'Unable to get client token.', 'paypal-brasil-para-woocommerce' ),
+			$response_body
+		);
+	}
+
+	/**
 	 * Create a payment.
 	 *
 	 * @param array $data
@@ -212,12 +257,16 @@ class PayPal_Brasil_Orders_api_V2
 		$url = $this->get_base_url() . '/checkout/orders';
 
 		// Add bn code if exits.
-		if ($bn_code_key && array_key_exists($bn_code_key, $this->bn_code)) {
+		$add_bn_code = true;
+		if ('applepay' === $bn_code_key) {
+			// O Apple Pay (Basic) não possui BN Code oficial: omitimos o header.
+			$add_bn_code = false;
+		} elseif ($bn_code_key && array_key_exists($bn_code_key, $this->bn_code)) {
 			$headers['PayPal-Partner-Attribution-Id'] = $this->bn_code[$bn_code_key];
 		}
 
 		// Get response create_payment.
-		$response = $this->do_request('CREATE_ORDER', $url, 'POST', $data, $headers);
+		$response = $this->do_request('CREATE_ORDER', $url, 'POST', $data, $headers, true, $add_bn_code);
 		$response_body = json_decode(wp_remote_retrieve_body($response), true);
 
 		// Check if is WP_Error
@@ -331,12 +380,16 @@ class PayPal_Brasil_Orders_api_V2
 		$url = $this->get_base_url() . '/checkout/orders/' . $order_id;
 
 		// Add bn code if exits.
-		if ($bn_code_key && array_key_exists($bn_code_key, $this->bn_code)) {
+		$add_bn_code = true;
+		if ('applepay' === $bn_code_key) {
+			// O Apple Pay (Basic) não possui BN Code oficial: omitimos o header.
+			$add_bn_code = false;
+		} elseif ($bn_code_key && array_key_exists($bn_code_key, $this->bn_code)) {
 			$headers['PayPal-Partner-Attribution-Id'] = $this->bn_code[$bn_code_key];
 		}
 
 		// Get response.
-		$response = $this->do_request('GET_ORDER', $url, 'GET', array(), $headers);
+		$response = $this->do_request('GET_ORDER', $url, 'GET', array(), $headers, true, $add_bn_code);
 		$response_body = json_decode(wp_remote_retrieve_body($response), true);
 
 		// Check if is WP_Error
@@ -372,12 +425,16 @@ class PayPal_Brasil_Orders_api_V2
 		$url = $this->get_base_url() . '/checkout/orders/' . $order_id . '/capture';
 
 		// Add bn code if exits.
-		if ($bn_code_key && array_key_exists($bn_code_key, $this->bn_code)) {
+		$add_bn_code = true;
+		if ('applepay' === $bn_code_key) {
+			// O Apple Pay (Basic) não possui BN Code oficial: omitimos o header.
+			$add_bn_code = false;
+		} elseif ($bn_code_key && array_key_exists($bn_code_key, $this->bn_code)) {
 			$headers['PayPal-Partner-Attribution-Id'] = $this->bn_code[$bn_code_key];
 		}
 
 		// Get response.
-		$response = $this->do_request('CAPTURE_ORDER', $url, 'POST', array(), $headers);
+		$response = $this->do_request('CAPTURE_ORDER', $url, 'POST', array(), $headers, true, $add_bn_code);
 		$response_body = json_decode(wp_remote_retrieve_body($response), true);
 
 		// Check if is WP_Error
@@ -883,18 +940,21 @@ class PayPal_Brasil_Orders_api_V2
 	 * @throws PayPal_Brasil_API_Exception
 	 * @throws PayPal_Brasil_Connection_Exception
 	 */
-	protected function do_request($name, $url, $method = 'POST', $data = array(), $headers = array(), $log = true)
+	protected function do_request($name, $url, $method = 'POST', $data = array(), $headers = array(), $log = true, $add_bn_code = true)
 	{
 		// valida data se for um array
 		$dataArray = is_array($data) ? $data : array();
 		$gateway_id = $this->gateway->id ?? $this->gateway['id'];
 		// Default headers.
+		// Importante: os headers passados explicitamente (ex.: Content-Type
+		// application/x-www-form-urlencoded no oauth2/token) devem ter precedência
+		// sobre os defaults. Por isso $headers entra como primeiro argumento.
 		$headers = wp_parse_args(
+			$headers,
 			array(
 				'Accept-Language' => get_locale(), // use default WP locale.
 				'Content-Type' => 'application/json', // send as json for default.
-			),
-			$headers
+			)
 		);
 
 		// Add access token if needed.
@@ -905,7 +965,7 @@ class PayPal_Brasil_Orders_api_V2
 		}
 
 		// Default partner id if nothing is passed.
-		if (!isset($headers['PayPal-Partner-Attribution-Id'])) {
+		if ($add_bn_code && !isset($headers['PayPal-Partner-Attribution-Id'])) {
 			$headers['locale'] = get_locale();
 			$headers['PayPal-Partner-Attribution-Id'] = $this->bn_code['default'];
 			$headers['user_action'] = 'CONTINUE';

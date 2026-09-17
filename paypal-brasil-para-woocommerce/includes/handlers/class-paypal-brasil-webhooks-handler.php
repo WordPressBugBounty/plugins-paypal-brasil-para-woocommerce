@@ -189,6 +189,49 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 		}
 
 		/**
+		 * Verifica se o evento já foi processado para este pedido (idempotência).
+		 *
+		 * O PayPal pode reentregar o mesmo evento (timeout de rede). Usamos o `id` do
+		 * evento (ex.: WH-...) como chave de deduplicação, armazenada em metadado do pedido.
+		 *
+		 * @param WC_Order $order    Pedido.
+		 * @param string   $event_id ID do evento do webhook.
+		 * @return bool True se já processado.
+		 */
+		private function is_event_already_processed( $order, $event_id ) {
+			if ( empty( $event_id ) ) {
+				return false;
+			}
+			$processed = $order->get_meta( '_paypal_brasil_processed_webhook_events' );
+			if ( ! is_array( $processed ) ) {
+				$processed = array();
+			}
+
+			return in_array( $event_id, $processed, true );
+		}
+
+		/**
+		 * Marca um evento como processado no pedido (idempotência).
+		 *
+		 * @param WC_Order $order    Pedido.
+		 * @param string   $event_id ID do evento do webhook.
+		 */
+		private function mark_event_as_processed( $order, $event_id ) {
+			if ( empty( $event_id ) ) {
+				return;
+			}
+			$processed = $order->get_meta( '_paypal_brasil_processed_webhook_events' );
+			if ( ! is_array( $processed ) ) {
+				$processed = array();
+			}
+			if ( ! in_array( $event_id, $processed, true ) ) {
+				$processed[] = $event_id;
+				$order->update_meta_data( '_paypal_brasil_processed_webhook_events', $processed );
+				$order->save();
+			}
+		}
+
+		/**
 		 * Handle the event.
 		 *
 		 * @param $event
@@ -201,11 +244,13 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 				"paypal-brasil-plus-gateway" => 'wc_ppp_brasil_sale_id',
 				"paypal-brasil-spb-gateway" => 'paypal_brasil_sale_id',
 				"paypal-brasil-bcdc-gateway" => 'wc_bcdc_brasil_sale_id',
-				"paypal-brasil-pix-gateway" => 'paypal_brasil_pix_sale_id'
+				"paypal-brasil-pix-gateway" => 'paypal_brasil_pix_sale_id',
+				"paypal-brasil-applepay-gateway" => 'wc_applepay_brasil_sale_id'
 			];
 
 			$gateway_capture_meta_keys = array(
 				'paypal-brasil-bcdc-gateway' => 'wc_bcdc_brasil_capture_id',
+				'paypal-brasil-applepay-gateway' => 'wc_applepay_brasil_capture_id',
 			);
 
 
@@ -284,8 +329,18 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 					}
 
 					if ( $payment_method === $this->gateway_id ) {
+						// Idempotência: evita reprocessar um evento já tratado (reentrega do PayPal).
+						$event_id = isset( $event['id'] ) ? (string) $event['id'] : '';
+						if ( $this->is_event_already_processed( $order, $event_id ) ) {
+							$this->log( 'Webhook event already processed, skipping: ' . $event_id );
+							return;
+						}
+
 						$this->log( 'Processing webhook for payment method: ' . $payment_method );
 						$this->{$method_name}( $order, $event );
+
+						// Marca o evento como processado após o tratamento bem-sucedido.
+						$this->mark_event_as_processed( $order, $event_id );
 					} else {
 						$this->log( 'Payment method not found: ' . $payment_method );
 					}
@@ -650,7 +705,63 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 			$this->handle_process_payment_sale_reversed( $order, $event );
 		}
 
+		/**
+		 * When a Capture (Orders API v2) payment is denied.
+		 *
+		 * @param WC_Order $order Order.
+		 * @param array    $event Webhook payload.
+		 */
+		public function handle_process_payment_capture_denied( $order, $event ) {
+			$this->handle_process_payment_sale_denied( $order, $event );
+		}
 
+		/**
+		 * When a Capture (Orders API v2) payment is declined.
+		 *
+		 * @param WC_Order $order Order.
+		 * @param array    $event Webhook payload.
+		 */
+		public function handle_process_payment_capture_declined( $order, $event ) {
+			$this->handle_process_payment_sale_denied( $order, $event );
+		}
+
+		/**
+		 * When a Capture (Orders API v2) payment is pending (ex.: revisão de risco).
+		 *
+		 * @param WC_Order $order Order.
+		 * @param array    $event Webhook payload.
+		 */
+		public function handle_process_payment_capture_pending( $order, $event ) {
+			// Check if order exists.
+			if ( ! $order ) {
+				$this->log( 'Processing capture pending was not initiated because there is no order.' );
+
+				return;
+			}
+
+			$this->log( 'Processing capture pending initiated.' );
+
+			// Mantém o pedido em espera caso ainda não esteja em um estado final.
+			if ( ! in_array( $order->get_status(), array( 'on-hold', 'processing', 'completed', 'failed', 'refunded', 'cancelled' ), true ) ) {
+				$order->update_status( 'on-hold', __( 'PayPal: O pagamento está em análise (captura pendente).', 'paypal-brasil-para-woocommerce' ) );
+				$this->log( 'Processing capture pending finished.' );
+			} else {
+				$this->log( 'Processing capture pending did not change anything.' );
+			}
+		}
+
+		/**
+		 * When the buyer approves the order (CHECKOUT.ORDER.APPROVED).
+		 *
+		 * No fluxo Basic Apple Pay, a captura é síncrona no `process_payment`, portanto
+		 * este evento é apenas informativo e não altera o status do pedido aqui.
+		 *
+		 * @param WC_Order $order Order.
+		 * @param array    $event Webhook payload.
+		 */
+		public function handle_process_checkout_order_approved( $order, $event ) {
+			$this->log( 'Processing checkout order approved initiated (no-op: captura síncrona no checkout).' );
+		}
 
 	}
 

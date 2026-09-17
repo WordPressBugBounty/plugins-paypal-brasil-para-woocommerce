@@ -1,0 +1,51 @@
+/*!******************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/postcss-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/frontend/frontend-applepay/frontend-applepay.scss ***!
+  \******************************************************************************************************************************************************************************************/
+@charset "UTF-8";
+/**
+ * Apple Pay Frontend Styles
+ * Estilos para o mark + botão do Apple Pay no checkout.
+ *
+ * O mark + botão são renderizados dentro do container de botões do checkout
+ * (.paypal-submit-button-applepay), seguindo o padrão dos botões SPB/BCDC.
+ */
+.paypal-submit-button-applepay {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 15px 0;
+}
+.paypal-submit-button-applepay .applepay-mark-container {
+  display: inline-flex;
+  align-items: center;
+}
+.paypal-submit-button-applepay .applepay-mark-container apple-pay-mark {
+  --apple-pay-button-height: 44px;
+  display: inline-block;
+}
+.paypal-submit-button-applepay .applepay-button {
+  display: inline-block;
+  min-height: 44px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 6px;
+  background-color: #000000;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.paypal-submit-button-applepay .applepay-button:hover {
+  opacity: 0.85;
+}
+.paypal-submit-button-applepay .applepay-button:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 480px) {
+  .paypal-submit-button-applepay {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

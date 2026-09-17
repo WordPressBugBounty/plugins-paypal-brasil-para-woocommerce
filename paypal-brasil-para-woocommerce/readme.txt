@@ -4,8 +4,8 @@ Contributors: suporteppbr, bycoders
 Tags: paypal, woocommerce, checkout transparente, paypal brasil, ecommerce
 Requires at least: 4.4
 Tested up to: 7.0.0
-Stable tag: 1.7.5
-Requires PHP: 7.0
+Stable tag: 1.7.7
+Requires PHP: 7.4
 License: GPLv2 or later
 License URI:  [http://www.gnu.org/licenses/gpl-2.0.html](http://www.gnu.org/licenses/gpl-2.0.html)
 WC requires at least: 3.6
@@ -89,6 +89,10 @@ If you have any questions or difficulties using the plugin, access the Support s
 5. PayPal account login screen.
 
 == Changelog ==
+
+= 1.7.7 =
+* Feature: Added Apple Pay (Basic) payment method via PayPal.
+* Fixed: Pix QR Code generation on PHP 7.4.
 
 = 1.7.5 =
 * Feature: Added PayPal PIX payment method for WooCommerce.
@@ -305,6 +309,9 @@ If you have any questions or difficulties using the plugin, access the Support s
 * Plugin launch.
 
 == Upgrade Notice ==
+
+= 1.7.7 =
+* Feature: Added Apple Pay (Basic) payment method via PayPal.
 
 = 1.7.5 =
 * Feature: Added PayPal PIX payment method for WooCommerce.

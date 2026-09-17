@@ -8,8 +8,8 @@ if (!defined('ABSPATH')) {
 use Automattic\WooCommerce\Utilities\OrderUtil;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
+use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
 use Endroid\QrCode\Writer\PngWriter;
 
 /**
@@ -649,11 +649,11 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 			if (OrderUtil::custom_orders_table_usage_is_enabled()) {
 				$order->update_meta_data('wc_pix_brasil_sale_id', $response['id']);
 				$order->update_meta_data('wc_pix_brasil_sandbox', $this->mode);
-				$order->update_meta_data('wc_pix_brasil_pix_code', $response['payment_source']['pix']['qr_payload']);
+				$order->update_meta_data('wc_pix_brasil_pix_code', $response['payment_source']['pix']['qr_details']['qr_payload']);
 			} else {
 				update_post_meta($order->get_id(), 'wc_pix_brasil_sale_id', $response['id']);
 				update_post_meta($order->get_id(), 'wc_pix_brasil_sandbox', $this->mode);
-				update_post_meta($order->get_id(), 'wc_pix_brasil_pix_code', $response['payment_source']['pix']['qr_payload']);
+				update_post_meta($order->get_id(), 'wc_pix_brasil_pix_code', $response['payment_source']['pix']['qr_details']['qr_payload']);
 			}
 
 			$order->set_payment_method_title(__('Pix', "paypal-brasil-para-woocommerce"));
@@ -753,15 +753,15 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 			$order->update_meta_data('paypal_brasil_pix_order_id', $response['id']);
 			$order->update_meta_data('paypal_brasil_pix_status', $response['status']);
 			$order->update_meta_data('paypal_brasil_pix_data', $response);
-			$order->update_meta_data('paypal_brasil_pix_qr_code', $pix_data['qr_code']);
-			$order->update_meta_data('paypal_brasil_pix_code', $pix_data['pix_code']);
+			$order->update_meta_data('paypal_brasil_pix_qr_code', $pix_data['qr_image']);
+			$order->update_meta_data('paypal_brasil_pix_code', $pix_data['qr_payload']);
 			$order->update_meta_data('paypal_brasil_pix_expiry', $expiry_timestamp);
 		} else {
 			update_post_meta($order_id, 'paypal_brasil_pix_order_id', $response['id']);
 			update_post_meta($order_id, 'paypal_brasil_pix_status', $response['status']);
 			update_post_meta($order_id, 'paypal_brasil_pix_data', $response);
-			update_post_meta($order_id, 'paypal_brasil_pix_qr_code', $pix_data['qr_code']);
-			update_post_meta($order_id, 'paypal_brasil_pix_code', $pix_data['pix_code']);
+			update_post_meta($order_id, 'paypal_brasil_pix_qr_code', $pix_data['qr_image']);
+			update_post_meta($order_id, 'paypal_brasil_pix_code', $pix_data['qr_payload']);
 			update_post_meta($order_id, 'paypal_brasil_pix_expiry', $expiry_timestamp);
 		}
 
@@ -1035,10 +1035,10 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 				->writerOptions([])
 				->data($pixString) // A string do PIX Copia e Cola vai aqui
 				->encoding(new Encoding('UTF-8'))
-				->errorCorrectionLevel(ErrorCorrectionLevel::High)
+				->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
 				->size(300) // Tamanho da imagem em pixels
 				->margin(10)
-				->roundBlockSizeMode(RoundBlockSizeMode::Margin)
+				->roundBlockSizeMode(new RoundBlockSizeModeMargin())
 				->build();
 
 			return $result->getDataUri();

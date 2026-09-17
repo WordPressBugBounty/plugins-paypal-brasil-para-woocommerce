@@ -39,6 +39,8 @@ class PayPal_Brasil_Handler {
 		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-pplus-deactivate.php';
 		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-bcdc-checkout-activate.php';
 		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-logger-handler.php';
+		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-applepay-client-token-handler.php';
+		include_once dirname( __FILE__ ) . '/api/class-paypal-brasil-api-applepay-checkout-handler.php';
 	}
 
 	/**

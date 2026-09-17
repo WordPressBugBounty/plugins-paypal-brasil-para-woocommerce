@@ -81,7 +81,8 @@ class PayPal_Brasil
 		$allowed_gateways = array(
 			'PayPal_Brasil_SPB_Gateway',
 			'Paypal_Brasil_BCDC_Gateway',
-			'PayPal_Brasil_PIX_Gateway'
+			'PayPal_Brasil_PIX_Gateway',
+			'PayPal_Brasil_ApplePay_Gateway'
 		);
 
 		if ( ! paypal_brasil_is_pplus_retired() ) {
@@ -150,6 +151,7 @@ class PayPal_Brasil
 		}
 
 		$methods[] = 'PayPal_Brasil_PIX_Gateway';
+		$methods[] = 'PayPal_Brasil_ApplePay_Gateway';
 
 		return $methods;
 	}
@@ -166,6 +168,19 @@ class PayPal_Brasil
 			include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-orders-gateway.php';
 			include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-bcdc-gateway.php';
 			include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-pix-gateway.php';
+			include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-applepay-gateway.php';
+
+			// Integração do Apple Pay com o Checkout em Blocos (Cart & Checkout Blocks).
+			if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
+				include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-applepay-blocks-integration.php';
+				add_action(
+					'woocommerce_blocks_payment_method_type_registration',
+					function ( $payment_method_registry ) {
+						$payment_method_registry->register( new PayPal_Brasil_ApplePay_Blocks_Integration() );
+					}
+				);
+			}
+
 			if (!in_array(get_woocommerce_currency(), self::get_allowed_currencies())) {
 				add_action('admin_notices', array($this, 'woocommerce_unavailable_currency'));
 			}

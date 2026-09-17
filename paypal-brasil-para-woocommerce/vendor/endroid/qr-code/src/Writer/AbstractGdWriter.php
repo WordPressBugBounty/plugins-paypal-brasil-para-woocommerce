@@ -8,34 +8,28 @@ use Endroid\QrCode\Bacon\MatrixFactory;
 use Endroid\QrCode\Exception\ValidationException;
 use Endroid\QrCode\ImageData\LabelImageData;
 use Endroid\QrCode\ImageData\LogoImageData;
-use Endroid\QrCode\Label\LabelAlignment;
+use Endroid\QrCode\Label\Alignment\LabelAlignmentLeft;
+use Endroid\QrCode\Label\Alignment\LabelAlignmentRight;
 use Endroid\QrCode\Label\LabelInterface;
 use Endroid\QrCode\Logo\LogoInterface;
-use Endroid\QrCode\Matrix\MatrixInterface;
 use Endroid\QrCode\QrCodeInterface;
-use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeNone;
 use Endroid\QrCode\Writer\Result\GdResult;
 use Endroid\QrCode\Writer\Result\ResultInterface;
 use Zxing\QrReader;
 
 abstract class AbstractGdWriter implements WriterInterface, ValidatingWriterInterface
 {
-    protected function getMatrix(QrCodeInterface $qrCode): MatrixInterface
-    {
-        $matrixFactory = new MatrixFactory();
-
-        return $matrixFactory->create($qrCode);
-    }
-
     public function write(QrCodeInterface $qrCode, LogoInterface $logo = null, LabelInterface $label = null, array $options = []): ResultInterface
     {
         if (!extension_loaded('gd')) {
             throw new \Exception('Unable to generate image: please check if the GD extension is enabled and configured correctly');
         }
 
-        $matrix = $this->getMatrix($qrCode);
+        $matrixFactory = new MatrixFactory();
+        $matrix = $matrixFactory->create($qrCode);
 
-        $baseBlockSize = RoundBlockSizeMode::None === $qrCode->getRoundBlockSizeMode() ? 10 : intval($matrix->getBlockSize());
+        $baseBlockSize = $qrCode->getRoundBlockSizeMode() instanceof RoundBlockSizeModeNone ? 10 : intval($matrix->getBlockSize());
         $baseImage = imagecreatetruecolor($matrix->getBlockCount() * $baseBlockSize, $matrix->getBlockCount() * $baseBlockSize);
 
         if (!$baseImage) {
@@ -184,9 +178,9 @@ abstract class AbstractGdWriter implements WriterInterface, ValidatingWriterInte
         $x = intval(imagesx($targetImage) / 2 - $labelImageData->getWidth() / 2);
         $y = imagesy($targetImage) - $label->getMargin()->getBottom();
 
-        if (LabelAlignment::Left === $label->getAlignment()) {
+        if ($label->getAlignment() instanceof LabelAlignmentLeft) {
             $x = $label->getMargin()->getLeft();
-        } elseif (LabelAlignment::Right === $label->getAlignment()) {
+        } elseif ($label->getAlignment() instanceof LabelAlignmentRight) {
             $x = imagesx($targetImage) - $labelImageData->getWidth() - $label->getMargin()->getRight();
         }
 

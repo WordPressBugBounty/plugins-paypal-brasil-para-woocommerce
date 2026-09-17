@@ -1,0 +1,45 @@
+/*!********************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/postcss-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./src/frontend/frontend-applepay-blocks/frontend-applepay-blocks.scss ***!
+  \********************************************************************************************************************************************************************************************************/
+@charset "UTF-8";
+/**
+ * Apple Pay Blocks Styles
+ * Estilos para o mark + botão do Apple Pay no Checkout em Blocos.
+ */
+.paypal-applepay-blocks-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0;
+}
+.paypal-applepay-blocks-wrapper .paypal-applepay-blocks-mark {
+  display: flex;
+  align-items: center;
+}
+.paypal-applepay-blocks-wrapper .paypal-applepay-blocks-mark apple-pay-mark {
+  --apple-pay-button-height: 44px;
+  display: inline-block;
+}
+.paypal-applepay-blocks-wrapper .applepay-blocks-button {
+  display: inline-block;
+  min-height: 44px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 6px;
+  background-color: #000000;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.paypal-applepay-blocks-wrapper .applepay-blocks-button:hover {
+  opacity: 0.85;
+}
+.paypal-applepay-blocks-wrapper .applepay-blocks-button:active {
+  transform: translateY(1px);
+}
+.paypal-applepay-blocks-wrapper .paypal-applepay-blocks-error {
+  color: #b22222;
+  font-size: 14px;
+}
