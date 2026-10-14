@@ -66,6 +66,45 @@ class PayPal_Brasil_Handler {
 		}
 
 		$action = $_GET['action'];
+
+		// Enforce the HTTP method declared for the handler.
+		if ( isset( $handlers[ $action ]['method'] ) ) {
+			$declared_method = strtoupper( $handlers[ $action ]['method'] );
+			$request_method  = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( $_SERVER['REQUEST_METHOD'] ) : 'GET';
+			if ( $request_method !== $declared_method ) {
+				wp_send_json( array(
+					'result'  => 'error',
+					'message' => 'Method not allowed.',
+				), 405 );
+			}
+		}
+
+		// Enforce authorization for handlers that require it.
+		if ( ! empty( $handlers[ $action ]['requires_auth'] ) ) {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				wp_send_json( array(
+					'result'  => 'error',
+					'message' => 'Not authorized.',
+				), 403 );
+			}
+
+			$nonce = isset( $_SERVER['HTTP_X_WP_NONCE'] ) ? sanitize_text_field( $_SERVER['HTTP_X_WP_NONCE'] ) : '';
+			if ( ! wp_verify_nonce( $nonce, 'paypal_brasil_handler' ) ) {
+				wp_send_json( array(
+					'result'  => 'error',
+					'message' => 'Not authorized.',
+				), 403 );
+			}
+
+			$content_type = isset( $_SERVER['CONTENT_TYPE'] ) ? $_SERVER['CONTENT_TYPE'] : '';
+			if ( stripos( $content_type, 'application/json' ) === false ) {
+				wp_send_json( array(
+					'result'  => 'error',
+					'message' => 'Content-Type must be application/json.',
+				), 415 );
+			}
+		}
+
 		call_user_func( $handlers[ $action ]['callback'] );
 	}
 
