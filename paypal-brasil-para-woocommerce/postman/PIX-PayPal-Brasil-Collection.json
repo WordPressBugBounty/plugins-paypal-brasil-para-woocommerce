@@ -216,7 +216,7 @@
               },
               {
                 "key": "PayPal-Partner-Attribution-Id",
-                "value": "WooCommerceBrazil_Ecom_PIX"
+                "value": "Woo_Cart_PPCP_PIX"
               }
             ],
             "body": {
@@ -264,7 +264,7 @@
               },
               {
                 "key": "PayPal-Partner-Attribution-Id",
-                "value": "WooCommerceBrazil_Ecom_PIX"
+                "value": "Woo_Cart_PPCP_PIX"
               }
             ],
             "body": {
@@ -325,7 +325,8 @@
           }
         },
         {
-          "name": "Capture Payment",
+          "name": "Capture Payment (não usado no fluxo Pix — captura automática pelo PayPal)",
+          "description": "O plugin NÃO chama /capture no fluxo Pix. O pedido é criado com processing_instruction: ORDER_COMPLETE_ON_PAYMENT_APPROVAL e a captura é feita automaticamente pelo PayPal após o pagamento. Esta requisição serve apenas para teste manual da API e não representa o fluxo real.",
           "event": [
             {
               "listen": "test",
@@ -361,7 +362,7 @@
               },
               {
                 "key": "PayPal-Partner-Attribution-Id",
-                "value": "WooCommerceBrazil_Ecom_PIX"
+                "value": "Woo_Cart_PPCP_PIX"
               }
             ],
             "body": {
@@ -540,7 +541,7 @@
               },
               {
                 "key": "PayPal-Partner-Attribution-Id",
-                "value": "WooCommerceBrazil_Ecom_PIX"
+                "value": "Woo_Cart_PPCP_PIX"
               }
             ],
             "body": {
@@ -582,7 +583,7 @@
               },
               {
                 "key": "PayPal-Partner-Attribution-Id",
-                "value": "WooCommerceBrazil_Ecom_PIX"
+                "value": "Woo_Cart_PPCP_PIX"
               }
             ],
             "body": {
@@ -624,7 +625,7 @@
               },
               {
                 "key": "PayPal-Partner-Attribution-Id",
-                "value": "WooCommerceBrazil_Ecom_PIX"
+                "value": "Woo_Cart_PPCP_PIX"
               }
             ],
             "body": {

@@ -83,7 +83,7 @@ if ($order->needs_payment() || $order->needs_processing()) {
           <polyline points="20 6 9 17 4 12"/>
         </svg>
       </div>
-      <div class="pix-confirmed-title"><?php _e('Pedido recebido!', 'paypal-brasil-para-woocommerce'); ?></div>
+      <div class="pix-confirmed-title"><?php _e('Pedido pendente!', 'paypal-brasil-para-woocommerce'); ?></div>
       <div class="pix-confirmed-sub"><?php _e('O pagamento está sendo processado. Você será notificado assim que for confirmado.', 'paypal-brasil-para-woocommerce'); ?></div>
     </div>
 

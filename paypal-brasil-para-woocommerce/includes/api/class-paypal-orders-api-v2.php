@@ -28,7 +28,7 @@ class PayPal_Brasil_Orders_api_V2
 		'shortcut' => 'WooCommerceBrazil_Ecom_ECS',
 		'plus' => 'WooCommerceBR_Ecom_PPPlus',
 		'bcdc' => 'WooCommerceBrazil_Ecom_BCDC',
-		'pix' => 'WooCommerceBrazil_Ecom_PIX',
+		'pix' => 'Woo_Cart_PPCP_PIX',
 		'default' => 'WooCommerceBrazil_Ecom_EC',
 	);
 
@@ -88,6 +88,18 @@ class PayPal_Brasil_Orders_api_V2
 		// Set the access token transient key to a MD5 hash of client id and secret. So transient will change if
 		// client id or secret changes also.
 		$this->access_token_transient_key = 'paypal_brasil_access_token_' . $this->get_credentials_hash();
+	}
+
+	/**
+	 * Get a BN code (PayPal-Partner-Attribution-Id) by key.
+	 *
+	 * @param string $key BN code key.
+	 *
+	 * @return string|null
+	 */
+	public function get_bn_code($key)
+	{
+		return isset($this->bn_code[$key]) ? $this->bn_code[$key] : null;
 	}
 
 	/**

@@ -126,7 +126,13 @@ class PayPal_Brasil_PIX_Test_Automation {
         if (class_exists('PayPal_Brasil_Orders_API_V2')) {
             $this->add_success('Classe PayPal_Brasil_Orders_API_V2 existe');
             
-            $api = new PayPal_Brasil_Orders_API_V2();
+            // A API exige gateway e credenciais no construtor; usa a instância do gateway PIX.
+            if (!class_exists('PayPal_Brasil_PIX_Gateway')) {
+                $this->add_error('Classe PayPal_Brasil_PIX_Gateway não encontrada');
+                return;
+            }
+            $gateway = new PayPal_Brasil_PIX_Gateway();
+            $api = $gateway->api;
             
             // Verificar métodos PIX
             if (method_exists($api, 'create_payment_pix')) {
@@ -141,9 +147,9 @@ class PayPal_Brasil_PIX_Test_Automation {
                 $this->add_error('Método get_pix_payment_status não encontrado');
             }
             
-            // Verificar BN codes
-            $bn_codes = $api->get_bn_codes();
-            if (isset($bn_codes['pix']) && $bn_codes['pix'] === 'WooCommerceBrazil_Ecom_PIX') {
+            // Verificar BN code do PIX
+            $pix_bn_code = $api->get_bn_code('pix');
+            if ($pix_bn_code === 'Woo_Cart_PPCP_PIX') {
                 $this->add_success('BN Code PIX configurado corretamente');
             } else {
                 $this->add_error('BN Code PIX não configurado');
