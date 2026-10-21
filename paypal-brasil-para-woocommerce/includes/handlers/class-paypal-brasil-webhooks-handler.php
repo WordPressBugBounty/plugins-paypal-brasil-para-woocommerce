@@ -244,13 +244,14 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 				"paypal-brasil-plus-gateway" => 'wc_ppp_brasil_sale_id',
 				"paypal-brasil-spb-gateway" => 'paypal_brasil_sale_id',
 				"paypal-brasil-bcdc-gateway" => 'wc_bcdc_brasil_sale_id',
-				"paypal-brasil-pix-gateway" => 'paypal_brasil_pix_sale_id',
+				"paypal-brasil-pix-gateway" => 'paypal_brasil_pix_order_id',
 				"paypal-brasil-applepay-gateway" => 'wc_applepay_brasil_sale_id'
 			];
 
 			$gateway_capture_meta_keys = array(
 				'paypal-brasil-bcdc-gateway' => 'wc_bcdc_brasil_capture_id',
 				'paypal-brasil-applepay-gateway' => 'wc_applepay_brasil_capture_id',
+				'paypal-brasil-pix-gateway' => 'paypal_brasil_pix_capture_id',
 			);
 
 
@@ -660,6 +661,11 @@ if (!class_exists('PayPal_Brasil_Webhooks_Handler')) {
 
 			$this->log('Processing completed initiated.');
 			$resource_id = $this->get_resource_id_from_event($event);
+			// Store the capture id so later capture events (refund/reversal) resolve directly.
+			if ( 'paypal-brasil-pix-gateway' === $this->gateway_id ) {
+				$order->update_meta_data( 'paypal_brasil_pix_capture_id', $resource_id );
+				$order->save();
+			}
 			// Check if the current status isn't processing or completed.
 			if (
 				!in_array($order->get_status(), array(

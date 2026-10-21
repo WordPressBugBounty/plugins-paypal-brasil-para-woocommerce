@@ -4,7 +4,7 @@ Contributors: suporteppbr, bycoders
 Tags: paypal, woocommerce, checkout transparente, paypal brasil, ecommerce
 Requires at least: 4.4
 Tested up to: 7.0.0
-Stable tag: 1.8.0
+Stable tag: 1.8.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI:  [http://www.gnu.org/licenses/gpl-2.0.html](http://www.gnu.org/licenses/gpl-2.0.html)
@@ -89,6 +89,11 @@ If you have any questions or difficulties using the plugin, access the Support s
 5. PayPal account login screen.
 
 == Changelog ==
+
+= 1.8.1 =
+* Fixed: Pix QR Code generation on PHP 7.4.
+* Fixed: Pix payment confirmation via webhook and payment status check.
+* Security: Improved the Pix payment status verification.
 
 = 1.8.0 =
 * Updated: Improved Pix integration with PayPal.
@@ -315,6 +320,9 @@ If you have any questions or difficulties using the plugin, access the Support s
 * Plugin launch.
 
 == Upgrade Notice ==
+
+= 1.8.1 =
+* Fixes Pix QR Code generation on PHP 7.4 and hardens the Pix payment status check. Update recommended.
 
 = 1.8.0 =
 * Updated: Improved Pix integration with PayPal.

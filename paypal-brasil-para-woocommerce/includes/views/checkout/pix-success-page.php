@@ -10,7 +10,7 @@ if (!$order || $order->get_payment_method() !== $this->id || !isset($_GET['pix-p
 }
 
 $pix_data = $order->get_meta('paypal_brasil_pix_data');
-if (empty($pix_data) || !isset($pix_data['payment_source']['pix'])) {
+if (empty($pix_data) || !isset($pix_data['payment_source']['pix']['qr_details']['qr_payload'])) {
     return;
 }
 $orderPaymentPage    = $order->get_checkout_payment_url();
@@ -34,18 +34,20 @@ if ($order->needs_payment() || $order->needs_processing()) {
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
       </button>
-    <!-- Estado: QR / aguardando -->
     <div id="pix-qrcode-modal-content">
   
-
       <div class="pix-modal-title"><?php _e('Pague com PIX', 'paypal-brasil-para-woocommerce'); ?></div>
       <div class="pix-modal-sub"><?php _e('Escaneie o QR code com o app do seu banco', 'paypal-brasil-para-woocommerce'); ?></div>
 
+      <?php if ($qrCodeDataUri) : ?>
       <div class="pix-qr-wrap">
         <div class="pix-qr-frame">
           <img src="<?php echo esc_attr($qrCodeDataUri); ?>" alt="QR Code PIX" class="pix-qr-img" />
         </div>
       </div>
+      <?php else : ?>
+      <p class="pix-waiting"><?php esc_html_e('Não foi possível gerar o QR Code. Use o código copia e cola abaixo.', 'paypal-brasil-para-woocommerce'); ?></p>
+      <?php endif; ?>
 
       <div class="pix-timer-row" id="pix-timer-row">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -62,7 +64,6 @@ if ($order->needs_payment() || $order->needs_processing()) {
       <p class="pix-waiting"><?php _e('Aguardando pagamento…', 'paypal-brasil-para-woocommerce'); ?></p>
     </div>
 
-    <!-- Estado: pagamento confirmado -->
     <div id="div-payment-confirmed">
       <div class="pix-paid-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -76,7 +77,6 @@ if ($order->needs_payment() || $order->needs_processing()) {
       </a>
     </div>
 
-    <!-- Estado: expirado / processando -->
     <div id="div-payment-expired">
       <div class="pix-confirmed-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -95,9 +95,8 @@ if ($order->needs_payment() || $order->needs_processing()) {
 window.pixData = {
     order_id        : '<?php echo esc_js($order_id); ?>',
     expiry_timestamp: <?php echo intval($expiry_timestamp); ?>,
-    nonce           : '<?php echo wp_create_nonce('pix_status_check '); ?>',
-    status_check_url: '<?php echo admin_url('admin-ajax.php'); ?>',
-    success_url     : '<?php echo esc_url($order->get_checkout_order_received_url()); ?>'
+    status_check_url: '<?php echo esc_js( admin_url('admin-ajax.php') ); ?>',
+    success_url     : '<?php echo esc_js( esc_url_raw( $order->get_checkout_order_received_url() ) ); ?>'
 };
 
 (function () {
@@ -120,7 +119,6 @@ window.pixData = {
             });
         }
 
-        // Botão copiar
         var copyBtn = document.getElementById('pix-code-button');
         var copyKey = document.getElementById('pix-code');
         if (copyBtn && copyKey) {
@@ -176,7 +174,6 @@ function startPixTimer() {
         var s = String(remaining % 60).padStart(2, '0');
         el.textContent = m + ':' + s;
 
-        // Urgência: vermelho nos últimos 5 minutos
         if (row) {
             if (remaining > 0 && remaining <= 300) {
                 row.classList.add('pix-timer-urgent');
@@ -188,15 +185,13 @@ function startPixTimer() {
         if (remaining > 0) {
             setTimeout(tick, 1000);
         } else {
-            // Timer esgotado — esconde a linha de timer
             if (row) row.style.display = 'none';
         }
     }());
 }
 
 // ── Polling ───────────────────────────────────────────
-var pixTimer    = null;
-var pixInterval = null;
+var pixTimer = null;
 
 function hideQrContent() {
     var content = document.getElementById('pix-qrcode-modal-content');
@@ -218,53 +213,87 @@ function showPaymentExpired() {
 
 function startPixPolling() {
     stopPixPolling();
-    var attempts    = 0;
-    var maxAttempts = 10;
+    var remainingSecs = Math.max(0, parseInt(window.pixData.expiry_timestamp, 10) - Math.floor(Date.now() / 1000));
+    var decorrido = 0;
 
-    pixTimer = setTimeout(function () {
-        checkPixPaymentStatus();
-        attempts++;
+    function proximoIntervalo() {
+        // 10s during the first minute, 20s up to 5 minutes, 30s after that.
+        if (decorrido < 60)  { return 10000; }
+        if (decorrido < 300) { return 20000; }
+        return 30000;
+    }
 
-        pixInterval = setInterval(function () {
-            attempts++;
-            checkPixPaymentStatus();
-            if (attempts >= maxAttempts) {
-                stopPixPolling();
-                showPaymentExpired();
+    function agendar() {
+        if (decorrido >= remainingSecs) {
+            stopPixPolling();
+            showPaymentExpired();
+            return;
+        }
+
+        var intervalo = proximoIntervalo();
+        pixTimer = setTimeout(function () {
+            decorrido += intervalo / 1000;
+            if (!document.hidden) {
+                checkPixPaymentStatus();
             }
-        }, 10000);
-    }, 10000);
+            agendar();
+        }, intervalo);
+    }
+
+    agendar();
 }
 
 function stopPixPolling() {
     clearTimeout(pixTimer);
-    clearInterval(pixInterval);
-    pixTimer = pixInterval = null;
+    pixTimer = null;
+}
+
+function logPixStatusError(message, context) {
+    try {
+        fetch('<?php echo esc_js( esc_url_raw( rest_url('bcdc/v1/log') ) ); ?>', {
+            method : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body   : JSON.stringify({ level: 'error', message: message, context: context })
+        });
+    } catch (e) {}
 }
 
 function checkPixPaymentStatus() {
-    fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+    fetch('<?php echo esc_js( admin_url('admin-ajax.php') ); ?>', {
         method : 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body   : 'action=paypal_check_pix_payment_status&order_id=<?php echo $order->get_id(); ?>&nonce=<?php echo wp_create_nonce('paypal_check_pix_payment_status'); ?>'
+        body   : 'action=paypal_check_pix_payment_status&order_id=<?php echo absint( $order->get_id() ); ?>&order_key=<?php echo esc_js( rawurlencode( $order->get_order_key() ) ); ?>&nonce=<?php echo esc_js( wp_create_nonce( 'paypal_check_pix_payment_status' ) ); ?>'
     })
-    .then(function (res) { return res.text(); })
+    .then(function (res) {
+        if (!res.ok) {
+            logPixStatusError('PIX status check HTTP ' + res.status, { order_id: <?php echo absint( $order->get_id() ); ?> });
+            return null;
+        }
+        return res.text();
+    })
     .then(function (text) {
+        if (text === null) { return; }
         var data;
-        try { data = JSON.parse(text); } catch (e) { return; }
+        try { data = JSON.parse(text); } catch (e) {
+            logPixStatusError('PIX status check invalid JSON', { body: String(text).slice(0, 200) });
+            return;
+        }
         var status = data && data.data && data.data.status;
         if (!status) return;
         if (data.success && status === 'COMPLETED') {
             showPaymentConfirmed();
             setTimeout(function () {
-                window.location.href = '<?php echo $order->get_checkout_order_received_url(); ?>';
+                window.location.href = '<?php echo esc_js( esc_url_raw( $order->get_checkout_order_received_url() ) ); ?>';
             }, 3000);
         } else if (!data.success && status === 'EXPIRED') {
             stopPixPolling();
             showPaymentExpired();
         }
     })
-    .catch(function (err) { console.error('Erro ao verificar pagamento:', err); });
+    .catch(function (err) {
+        console.error('Erro ao verificar pagamento:', err);
+        logPixStatusError('PIX status check error', { error: String(err && err.message ? err.message : err) });
+    });
 }
 </script>
 
@@ -281,7 +310,7 @@ function checkPixPaymentStatus() {
   --pix-radius     : 12px;
 }
 
-/* ── Botão abrir ── */
+/* ── Open Button ── */
 .pix-open-button {
   margin-bottom: 1em;
   padding: 11px 22px;
@@ -335,7 +364,7 @@ function checkPixPaymentStatus() {
   transform: translateY(0) scale(1);
 }
 
-/* ── Botão fechar ── */
+/* ── Close Button ── */
 .pix-close-button {
   position: absolute;
   top: 14px;
@@ -357,7 +386,7 @@ function checkPixPaymentStatus() {
   margin-bottom: 14px;
 }
 
-/* ── Títulos ── */
+/* ── Titles ── */
 .pix-modal-title {
   font-size: 16px;
   font-weight: 700;
@@ -376,8 +405,8 @@ function checkPixPaymentStatus() {
 /* ── QR code ── */
 .pix-qr-wrap { margin-bottom: 14px; }
 .pix-qr-frame {
-  width: 182px;
-  height: 182px;
+  width: 240px;
+  height: 240px;
   border-radius: 12px;
   padding: 12px;
   box-shadow: 0 0 0 1.5px var(--pix-gray-200);
@@ -419,7 +448,7 @@ function checkPixPaymentStatus() {
   50%       { opacity: .4; }
 }
 
-/* ── Linha de cópia ── */
+/* ── Copy line ── */
 .pix-copy-row {
   width: 100%;
   background: var(--pix-gray-100);
@@ -454,7 +483,7 @@ function checkPixPaymentStatus() {
 }
 .pix-copy-btn:hover { background: var(--pix-gray-200); }
 
-/* ── Aguardando ── */
+/* ── Waiting ── */
 .pix-waiting {
   font-size: 12px;
   color: var(--pix-gray-400);
@@ -469,7 +498,7 @@ function checkPixPaymentStatus() {
   width: 100%;
 }
 
-/* ── Estado pagamento confirmado ── */
+/* ── Confirmed payment ── */
 #div-payment-confirmed {
   display: none;
   flex-direction: column;
@@ -531,7 +560,7 @@ function checkPixPaymentStatus() {
   text-decoration: none;
 }
 
-/* ── Estado expirado / processando ── */
+/* ── Expired payment ── */
 #div-payment-expired {
   display: none;
   flex-direction: column;
@@ -579,6 +608,6 @@ function checkPixPaymentStatus() {
 
 @media (max-width: 480px) {
   .pix-modal { padding: 24px 18px 30px; }
-  .pix-qr-frame { width: 156px; height: 156px; }
+  .pix-qr-frame { width: 200px; height: 200px; }
 }
 </style>

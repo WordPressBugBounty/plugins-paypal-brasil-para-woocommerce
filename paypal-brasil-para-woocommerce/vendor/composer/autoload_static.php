@@ -29,10 +29,6 @@ class ComposerStaticInitf793034287c6bf49f2f80fcc63828be4
             'GuzzleHttp\\Promise\\' => 19,
             'GuzzleHttp\\' => 11,
         ),
-        'E' =>
-        array (
-            'Endroid\\QrCode\\' => 15,
-        ),
         'D' =>
         array (
             'DASPRiD\\Enum\\' => 13,
@@ -68,10 +64,6 @@ class ComposerStaticInitf793034287c6bf49f2f80fcc63828be4
         'GuzzleHttp\\' =>
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/guzzle/src',
-        ),
-        'Endroid\\QrCode\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/endroid/qr-code/src',
         ),
         'DASPRiD\\Enum\\' =>
         array (

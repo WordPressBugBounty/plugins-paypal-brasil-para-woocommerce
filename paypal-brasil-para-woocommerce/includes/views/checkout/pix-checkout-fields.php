@@ -135,7 +135,5 @@ if (!defined('ABSPATH')) {
          right: -35%;
          width: 55%;
     }
-    
-
-
+}
 </style>

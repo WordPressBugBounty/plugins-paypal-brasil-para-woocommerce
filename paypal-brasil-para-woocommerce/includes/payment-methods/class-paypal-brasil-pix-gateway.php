@@ -6,11 +6,12 @@ if (!defined('ABSPATH')) {
 }
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
-use Endroid\QrCode\Builder\Builder;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
-use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
-use Endroid\QrCode\Writer\PngWriter;
+use BaconQrCode\Common\ErrorCorrectionLevel;
+use BaconQrCode\Encoder\Encoder;
+
+if (!class_exists('WC_PAYPAL_LOGGER')) {
+	require_once plugin_dir_path(__FILE__) . '../class-wc-paypal-logger.php';
+}
 
 /**
  * Class PayPal_Brasil_PIX_Gateway.
@@ -53,14 +54,11 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 		);
 		$this->supports = array(
 			'products',
-			'refunds',
 		);
 
-		// Load settings fields.
 		$this->init_form_fields();
 		$this->init_settings();
 
-		// Get available options.
 		$this->enabled = $this->get_option('enabled');
 		$this->title = __('PIX', "paypal-brasil-para-woocommerce");
 		$this->title_complement = $this->get_option('title_complement');
@@ -75,41 +73,28 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 		$this->invoice_id_prefix = $this->get_option('invoice_id_prefix');
 		$this->debug = $this->get_option('debug');
 
-		// Instance the API.
 		$this->api = new PayPal_Brasil_Orders_api_V2($this->get_client_id(), $this->get_secret(), $this->mode, $this);
 
-		// Save settings.
 		add_action('woocommerce_update_options_payment_gateways_' . $this->id, array(
 			$this,
 			'process_admin_options'
 		), 10);
 
-		// Save custom settings.
 		add_action('woocommerce_update_options_payment_gateways_' . $this->id, array(
 			$this,
 			'before_process_admin_options'
 		), 20);
 
-		// Stop here if is not the first load.
 		if (!$this->is_first_load()) {
 			return;
 		}
 
-		// Handler for IPN.
 		add_action('woocommerce_api_' . $this->id, array($this, 'webhook_handler'));
-		// Add hook to display QR code on thank you page
 		$this->add_thankyou_hook();
 
-		// Enqueue scripts.
 		add_action('admin_enqueue_scripts', array($this, 'admin_scripts'));
 		add_action('wp_enqueue_scripts', array($this, 'checkout_scripts'), 0);
 
-		// Hooks AJAX para verificação de status
-		add_action('wp_ajax_check_pix_status', array($this, 'ajax_check_pix_status'));
-		add_action('wp_ajax_nopriv_check_pix_status', array($this, 'ajax_check_pix_status'));
-		$this->init_ajax_request();
-
-		// If it's first load, add a instance of this.
 		self::$instance = $this;
 
 
@@ -201,14 +186,14 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 				'title'       => __('Tempo de expiração do QR Code', 'paypal-brasil-para-woocommerce'),
 				'type'        => 'select',
 				'description' => __('Tempo máximo que o cliente terá para escanear o QR Code e concluir o pagamento.', 'paypal-brasil-para-woocommerce'),
-				'default'     => '5M',
+				'default'     => '30M',
 				'options'     => array(
-					'5M' => __('15 minutos', 'paypal-brasil-para-woocommerce'),
-					'10M' => __('30 minutos', 'paypal-brasil-para-woocommerce'),
-					'20M' => __('30 minutos', 'paypal-brasil-para-woocommerce'),
+					'5M'  => __('5 minutos',  'paypal-brasil-para-woocommerce'),
+					'10M' => __('10 minutos', 'paypal-brasil-para-woocommerce'),
+					'20M' => __('20 minutos', 'paypal-brasil-para-woocommerce'),
 					'30M' => __('30 minutos', 'paypal-brasil-para-woocommerce'),
 					'1H'  => __('1 hora',     'paypal-brasil-para-woocommerce'),
-					'5H'  => __('4 horas',    'paypal-brasil-para-woocommerce'),
+					'5H'  => __('5 horas',    'paypal-brasil-para-woocommerce'),
 				),
 			),
 			'debug' => array(
@@ -260,11 +245,9 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 
             case 'none':
             default:
-                // Don't use credentials
                 return;
         }
 
-		    // Salva as credenciais nas opções do gateway atual
 			if (!empty($client) && !empty($secret)) {
 				$client_key = $mode === 'sandbox' ? 'client_sandbox' : 'client_live';
 				$secret_key = $mode === 'sandbox' ? 'secret_sandbox' : 'secret_live';
@@ -272,7 +255,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 				$this->update_option($client_key, $client);
 				$this->update_option($secret_key, $secret);
 				
-				// Atualizar propriedades da classe
 				if ($mode === 'sandbox') {
 					$this->client_sandbox = $client;
 					$this->secret_sandbox = $secret;
@@ -387,6 +369,16 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 		return !self::$instance;
 	}
 
+	/**
+	 * Returns the instance already built by WooCommerce, if any.
+	 *
+	 * @return PayPal_Brasil_PIX_Gateway|null
+	 */
+	public static function get_instance()
+	{
+		return self::$instance;
+	}
+
 	public function before_process_admin_options()
 	{
 		// Check first if is enabled
@@ -395,13 +387,10 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 			return;
 		}
 
-		// update credentials
 		$this->update_credentials();
 
-		// validate credentials
 		$this->validate_credentials();
 
-		// create webhooks
 		$this->create_webhooks();
 	}
 
@@ -412,6 +401,16 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	{
 		$webhook = null;
 		$webhook_url = defined('PAYPAL_BRASIL_WEBHOOK_URL') ? PAYPAL_BRASIL_WEBHOOK_URL : $this->get_webhook_url();
+
+		$events_types = array(
+			'CHECKOUT.ORDER.APPROVED',
+			'PAYMENT.CAPTURE.COMPLETED',
+			'PAYMENT.CAPTURE.DENIED',
+			'PAYMENT.CAPTURE.PENDING',
+			'PAYMENT.CAPTURE.REFUNDED',
+			'PAYMENT.CAPTURE.REVERSED',
+			'PAYMENT.CAPTURE.DECLINED',
+		);
 
 		try {
 			$registered_webhooks = $this->api->get_webhooks();
@@ -424,22 +423,41 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 			}
 
 			if (!$webhook) {
-				$events_types = array(
-					'PAYMENT.CAPTURE.COMPLETED',
-					'PAYMENT.CAPTURE.DECLINED', 
-					'PAYMENT.CAPTURE.PENDING',
-					'PAYMENT.CAPTURE.REFUNDED',
-					'PAYMENT.CAPTURE.REVERSED',
-				);
-
 				$webhook_result = $this->api->create_webhook($webhook_url, $events_types);
 				update_option('paypal_brasil_webhook_url-' . $this->id, $webhook_result['id']);
-				return;
+				return true;
+			}
+
+			$registered_event_names = array();
+			if (!empty($webhook['event_types']) && is_array($webhook['event_types'])) {
+				foreach ($webhook['event_types'] as $event_type) {
+					if (!empty($event_type['name'])) {
+						$registered_event_names[] = $event_type['name'];
+					}
+				}
+			}
+
+			$missing_events = array_diff($events_types, $registered_event_names);
+			if (!empty($missing_events)) {
+				try {
+					$this->api->update_webhook_event_types($webhook['id'], $events_types);
+				} catch (Exception $update_ex) {
+					WC_PAYPAL_LOGGER::log(
+						'Failed to update webhook event types: ' . $update_ex->getMessage(),
+						$this->id,
+						'error',
+						array('missing_events' => array_values($missing_events))
+					);
+					update_option('paypal_brasil_webhook_url-' . $this->id, $webhook['id']);
+					return false;
+				}
 			}
 
 			update_option('paypal_brasil_webhook_url-' . $this->id, $webhook['id']);
+			return true;
 		} catch (Exception $ex) {
 			update_option('paypal_brasil_webhook_url-' . $this->id, null);
+			return false;
 		}
 	}
 
@@ -457,7 +475,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	{
 		$is_available = ('yes' === $this->enabled);
 
-		// Verificar se é moeda brasileira
 		if (get_woocommerce_currency() !== 'BRL') {
 			$is_available = false;
 		}
@@ -478,12 +495,10 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	 */
 	private function validate_pix_requirements()
 	{
-		// Verificar se é BRL
 		if (get_woocommerce_currency() !== 'BRL') {
 			throw new Exception(__('PIX só funciona com moeda brasileira (BRL).', 'paypal-brasil-para-woocommerce'));
 		}
 		
-		// Verificar credenciais
 		if (empty($this->get_client_id()) || empty($this->get_secret())) {
 			throw new Exception(__('Credenciais PIX não configuradas.', 'paypal-brasil-para-woocommerce'));
 		}
@@ -495,9 +510,11 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	private function handle_api_exception($exception)
 	{
 		$data = $exception->getData();
-		
-		//TODO - Revisar possíveis erros retornados pela API
-		switch ($data['name']) {
+
+		$name  = isset($data['name']) ? $data['name'] : '';
+		$issue = isset($data['details'][0]['issue']) ? $data['details'][0]['issue'] : '';
+
+		switch ($name) {
 			case 'VALIDATION_ERROR':
 				wc_add_notice(
 					__('Dados inválidos para pagamento PIX. Verifique as informações.', 'paypal-brasil-para-woocommerce'),
@@ -519,6 +536,26 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 				);
 				break;
 				
+			case 'UNPROCESSABLE_ENTITY':
+				switch ($issue) {
+					case 'AMOUNT_LESS_THAN_MIN_VALUE':
+						wc_add_notice(__('O valor do pedido está abaixo do mínimo aceito para pagamento via Pix.', 'paypal-brasil-para-woocommerce'), 'error');
+						break;
+
+					case 'NOT_ENABLED_FOR_PAYMENT_SOURCE':
+						wc_add_notice(__('O Pix não está habilitado para esta conta. Entre em contato com o PayPal.', 'paypal-brasil-para-woocommerce'), 'error');
+						break;
+
+					case 'PAYEE_ACCOUNT_RESTRICTED':
+						wc_add_notice(__('A conta do lojista está restrita. Entre em contato com o PayPal.', 'paypal-brasil-para-woocommerce'), 'error');
+						break;
+
+					default:
+						wc_add_notice(__('Não foi possível processar o pagamento PIX.', 'paypal-brasil-para-woocommerce'), 'error');
+						break;
+				}
+				break;
+
 			default:
 				wc_add_notice(
 					__('Não foi possível processar o pagamento PIX.', 'paypal-brasil-para-woocommerce'),
@@ -527,7 +564,7 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 				break;
 		}
 		
-		$this->log('Erro PIX: ' . json_encode($data));
+		WC_PAYPAL_LOGGER::log('Erro PIX.', $this->id, 'error', $data);
 	}
 
 	/**
@@ -542,10 +579,8 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 		$order = wc_get_order($order_id);
 
 		try {
-			// Validar requisitos PIX
 			$this->validate_pix_requirements();
 
-			// Processar pagamento PIX
 			$result = $this->process_payment_pix($order);
 			
 			return $result;
@@ -564,7 +599,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	 */
 	private function process_payment_pix($order)
 	{
-		// Verificar se tem CPF/CNPJ
 		$cpf_cnpj = $this->get_customer_cpf_cnpj($order);
 		if (!$cpf_cnpj) {
 			throw new Exception(__('CPF ou CNPJ é obrigatório para pagamentos PIX.', 'paypal-brasil-para-woocommerce'));
@@ -574,7 +608,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 		$qr_expiry_secs   = $this->qr_expiry_to_seconds($this->qr_expiry);
 		$expiry_timestamp = time() + $qr_expiry_secs;
 
-		// Dados do pagamento PIX
 		$data = array(
 			'intent' => 'CAPTURE',
 			'purchase_units' => array(
@@ -590,7 +623,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 					),
 					'invoice_id' => sprintf('%s%s', $this->invoice_id_prefix, $order->get_id()),
 					'custom_id' => $order->get_id(),
-					'soft_descriptor' => 'Internal Pix tests',
 				),
 			),
 			'payment_source' => array(
@@ -627,38 +659,64 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 
 		try {
 
-			// Criar pagamento PIX na API
+			// Create PIX API payment
 			$response = $this->api->create_payment_pix($data,['PayPal-Request-Id' => wp_generate_uuid4()]);
 
-			// Extrair dados do PIX
 			$pix_data = $this->extract_pix_data($response);
 
-			// Salvar dados PIX no pedido
+			// Without the "copy and paste" payload the customer has no way to pay.
+			if (empty($pix_data['qr_payload'])) {
+				throw new Exception(__('Não foi possível gerar o QR Code PIX. Tente novamente.', 'paypal-brasil-para-woocommerce'));
+			}
+
+			// Bank apps reject a malformed BR Code without any feedback to the buyer.
+			// By default it is only logged; return false from the filter to block the payment.
+			$validacao = $this->validar_br_code($pix_data['qr_payload']);
+
+			if (!$validacao['valido']) {
+				WC_PAYPAL_LOGGER::log(
+					'BR Code PIX inválido recebido do PayPal: ' . $validacao['erro'],
+					$this->id,
+					'error',
+					array(
+						'order_id'        => $order->get_id(),
+						'paypal_order_id' => isset($response['id']) ? $response['id'] : '',
+						'payload_length'  => strlen($pix_data['qr_payload']),
+						'payload'         => $pix_data['qr_payload'],
+					)
+				);
+
+				if (!apply_filters('paypal_brasil_pix_ignorar_br_code_invalido', true, $validacao, $order)) {
+					throw new Exception(__('Não foi possível gerar um código PIX válido. Tente novamente ou escolha outra forma de pagamento.', 'paypal-brasil-para-woocommerce'));
+				}
+			}
+
+			// PayPal may apply a different expiry than requested (seconds from now or an
+			// ISO-8601 date); the countdown shown to the buyer must reflect the real one.
+			if (!empty($pix_data['qr_expiry'])) {
+				$expiry_paypal = $pix_data['qr_expiry'];
+
+				if (is_numeric($expiry_paypal)) {
+					$expiry_timestamp = time() + (int) $expiry_paypal;
+				} else {
+					$ts = strtotime($expiry_paypal);
+					if ($ts) {
+						$expiry_timestamp = $ts;
+					}
+				}
+			}
+
 			$this->save_pix_data_to_order($order, $response, $pix_data, $expiry_timestamp);
 
-			// Atualizar status do pedido
 			$order->update_status(
 				'on-hold',
 				__('Aguardando pagamento PIX.', 'paypal-brasil-para-woocommerce')
 			);
 
-			// Reduzir estoque
 			wc_reduce_stock_levels($order->get_id());
-
-			//TODO - Refatorar Get order id
-			if (OrderUtil::custom_orders_table_usage_is_enabled()) {
-				$order->update_meta_data('wc_pix_brasil_sale_id', $response['id']);
-				$order->update_meta_data('wc_pix_brasil_sandbox', $this->mode);
-				$order->update_meta_data('wc_pix_brasil_pix_code', $response['payment_source']['pix']['qr_details']['qr_payload']);
-			} else {
-				update_post_meta($order->get_id(), 'wc_pix_brasil_sale_id', $response['id']);
-				update_post_meta($order->get_id(), 'wc_pix_brasil_sandbox', $this->mode);
-				update_post_meta($order->get_id(), 'wc_pix_brasil_pix_code', $response['payment_source']['pix']['qr_details']['qr_payload']);
-			}
 
 			$order->set_payment_method_title(__('Pix', "paypal-brasil-para-woocommerce"));
 
-			// Add note for installments.
 			$installment_note = sprintf(__('Pix payment on PayPal.', "paypal-brasil-para-woocommerce"));
 
 			$order->add_order_note($installment_note);
@@ -688,25 +746,20 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	 */
 	private function get_customer_cpf_cnpj($order)
 	{
-		// Tentar pegar CPF primeiro
 		$cpf = $order->get_meta('_billing_cpf');
 		if (!empty($cpf) && $this->is_cpf($cpf)) {
 			return preg_replace('/[^0-9]/', '', $cpf);
 		}
 
-		// Tentar pegar CNPJ
 		$cnpj = $order->get_meta('_billing_cnpj');
 		if (!empty($cnpj) && $this->is_cnpj($cnpj)) {
 			return preg_replace('/[^0-9]/', '', $cnpj);
 		}
 
-		// Verificar se tem persontype para decidir qual campo usar
 		$persontype = $order->get_meta('_billing_persontype');
 		if ($persontype === '1') {
-			// Pessoa física - usar CPF
 			return $cpf ? preg_replace('/[^0-9]/', '', $cpf) : null;
 		} elseif ($persontype === '2') {
-			// Pessoa jurídica - usar CNPJ
 			return $cnpj ? preg_replace('/[^0-9]/', '', $cnpj) : null;
 		}
 
@@ -720,19 +773,16 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	{
 		$pix_data = array();
 
-		// Procurar pelos dados PIX na resposta
-		if (isset($response['payment_source']['pix'])) {
+		if (isset($response['payment_source']['pix']['qr_details'])) {
 			$pix_source = $response['payment_source']['pix']['qr_details'];
 
 			$pix_data['qr_payload'] = isset($pix_source['qr_payload']) ? $pix_source['qr_payload'] : '';
-			$pix_data['qr_image'] = isset($pix_source['qr_image']) ? $pix_source['qr_image'] : '';
 			$pix_data['qr_expiry'] = isset($pix_source['qr_expiry']) ? $pix_source['qr_expiry'] : '';
 		}
 
 		if (empty($pix_data['qr_payload']) && isset($response['links'])) {
 			foreach ($response['links'] as $link) {
 				if ($link['rel'] === 'payer-action' && strpos($link['href'], 'pix') !== false) {
-					// Extrair dados do link se necessário
 					$pix_data['payer_action_url'] = $link['href'];
 				}
 			}
@@ -746,30 +796,30 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	 */
 	private function save_pix_data_to_order($order, $response, $pix_data, $expiry_timestamp)
 	{
-		$order_id = $order->get_id();
+		$order_id        = $order->get_id();
+		$paypal_order_id = isset($response['id']) ? $response['id'] : '';
+		$paypal_status   = isset($response['status']) ? $response['status'] : '';
+		$qr_payload      = isset($pix_data['qr_payload']) ? $pix_data['qr_payload'] : '';
 
-		// Salvar dados principais
 		if (OrderUtil::custom_orders_table_usage_is_enabled()) {
-			$order->update_meta_data('paypal_brasil_pix_order_id', $response['id']);
-			$order->update_meta_data('paypal_brasil_pix_status', $response['status']);
+			$order->update_meta_data('paypal_brasil_pix_order_id', $paypal_order_id);
+			$order->update_meta_data('paypal_brasil_pix_status', $paypal_status);
 			$order->update_meta_data('paypal_brasil_pix_data', $response);
-			$order->update_meta_data('paypal_brasil_pix_qr_code', $pix_data['qr_image']);
-			$order->update_meta_data('paypal_brasil_pix_code', $pix_data['qr_payload']);
+			$order->update_meta_data('paypal_brasil_pix_code', $qr_payload);
 			$order->update_meta_data('paypal_brasil_pix_expiry', $expiry_timestamp);
 		} else {
-			update_post_meta($order_id, 'paypal_brasil_pix_order_id', $response['id']);
-			update_post_meta($order_id, 'paypal_brasil_pix_status', $response['status']);
+			update_post_meta($order_id, 'paypal_brasil_pix_order_id', $paypal_order_id);
+			update_post_meta($order_id, 'paypal_brasil_pix_status', $paypal_status);
 			update_post_meta($order_id, 'paypal_brasil_pix_data', $response);
-			update_post_meta($order_id, 'paypal_brasil_pix_qr_code', $pix_data['qr_image']);
-			update_post_meta($order_id, 'paypal_brasil_pix_code', $pix_data['qr_payload']);
+			update_post_meta($order_id, 'paypal_brasil_pix_code', $qr_payload);
 			update_post_meta($order_id, 'paypal_brasil_pix_expiry', $expiry_timestamp);
 		}
 
 		$order->add_order_note(
 			sprintf(
 				__('Paypal - Pagamento PIX criado. ID: %s. Expira em: %s', 'paypal-brasil-para-woocommerce'),
-				$response['id'],
-				date('d/m/Y H:i:s', $expiry_timestamp)
+				$paypal_order_id,
+				wp_date('d/m/Y H:i:s', $expiry_timestamp)
 			)
 		);
 
@@ -832,7 +882,7 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	 * @return string             Digits-only string, CC-prefixed, max 15 chars.
 	 */
 	private function format_phone_for_paypal( $raw_phone ) {
-		// 1. Keep digits only.
+
 		$digits = preg_replace( '/\D/', '', (string) $raw_phone );
 
 		// 2. Strip a leading "55" country code when the number already contains it.
@@ -842,10 +892,8 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 			$digits = substr( $digits, 2 );
 		}
 
-		// 3. Prepend Brazil country code.
 		$e164 = '55' . $digits;
 
-		// 4. Enforce E.164 maximum of 15 digits.
 		return substr( $e164, 0, 15 );
 	}
 
@@ -858,11 +906,15 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	private function qr_expiry_to_seconds($value)
 	{
 		$map = array(
+			'5M'  => 300,
+			'10M' => 600,
 			'15M' => 900,
+			'20M' => 1200,
 			'30M' => 1800,
 			'1H'  => 3600,
 			'2H'  => 7200,
 			'4H'  => 14400,
+			'5H'  => 18000,
 			'8H'  => 28800,
 			'12H' => 43200,
 			'24H' => 86400,
@@ -872,11 +924,99 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	}
 
 	/**
+	 * Calculates the BR Code CRC16-CCITT (polynomial 0x1021, initial value 0xFFFF).
+	 *
+	 * @param string $payload Payload without the 4 CRC digits.
+	 * @return string 4-digit uppercase hexadecimal CRC.
+	 */
+	private function pix_crc16($payload)
+	{
+		$crc = 0xFFFF;
+		$len = strlen($payload);
+
+		for ($i = 0; $i < $len; $i++) {
+			$crc ^= ord($payload[$i]) << 8;
+			for ($bit = 0; $bit < 8; $bit++) {
+				$crc = ($crc & 0x8000) ? (($crc << 1) ^ 0x1021) & 0xFFFF : ($crc << 1) & 0xFFFF;
+			}
+		}
+
+		return strtoupper(str_pad(dechex($crc), 4, '0', STR_PAD_LEFT));
+	}
+
+	/**
+	 * Validates the BR Code returned by PayPal: EMV/TLV structure and CRC.
+	 *
+	 * An invalid payload produces a QR Code that bank apps reject without
+	 * telling the buyer why.
+	 *
+	 * @param string $payload "Copy and paste" code.
+	 * @return array{valido:bool, erro:string}
+	 */
+	private function validar_br_code($payload)
+	{
+		if (!is_string($payload) || strlen($payload) < 20) {
+			return array('valido' => false, 'erro' => 'payload vazio ou curto demais');
+		}
+
+		if (strpos($payload, '0002') !== 0) {
+			return array('valido' => false, 'erro' => 'não começa com o Payload Format Indicator');
+		}
+
+		// Walk the root-level TLV fields.
+		$i   = 0;
+		$len = strlen($payload);
+		$tags_vistas = array();
+
+		while ($i < $len) {
+			if ($i + 4 > $len) {
+				return array('valido' => false, 'erro' => sprintf('estrutura TLV truncada na posição %d', $i));
+			}
+
+			$tag  = substr($payload, $i, 2);
+			$size = substr($payload, $i + 2, 2);
+
+			if (!ctype_digit($tag) || !ctype_digit($size)) {
+				return array(
+					'valido' => false,
+					'erro'   => sprintf('tag/comprimento não numérico na posição %d (%s%s)', $i, $tag, $size),
+				);
+			}
+
+			$size = (int) $size;
+			if ($i + 4 + $size > $len) {
+				return array(
+					'valido' => false,
+					'erro'   => sprintf('tag %s declara %d caracteres, restam %d', $tag, $size, $len - $i - 4),
+				);
+			}
+
+			$tags_vistas[$tag] = substr($payload, $i + 4, $size);
+			$i += 4 + $size;
+		}
+
+		if (!isset($tags_vistas['63'])) {
+			return array('valido' => false, 'erro' => 'campo de CRC (tag 63) ausente');
+		}
+
+		$crc_informado = strtoupper(substr($payload, -4));
+		$crc_calculado = $this->pix_crc16(substr($payload, 0, -4));
+
+		if ($crc_informado !== $crc_calculado) {
+			return array(
+				'valido' => false,
+				'erro'   => sprintf('CRC não confere (informado %s, calculado %s)', $crc_informado, $crc_calculado),
+			);
+		}
+
+		return array('valido' => true, 'erro' => '');
+	}
+
+	/**
 	 * Get admin options data for JavaScript
 	 */
 	private function get_admin_options_data()
 	{
-		//TODO - REvisitar função.
 		return array(
 			'enabled' => $this->enabled,
 			'title_complement' => $this->title_complement,
@@ -904,10 +1044,8 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 		$wc_screen_id = sanitize_title(__('WooCommerce', "paypal-brasil-para-woocommerce"));
 		$wc_settings_id = $wc_screen_id . '_page_wc-settings';
 
-		// Check if we are on the gateway settings page.
 		if ($wc_settings_id === $screen_id && isset($_GET['section']) && $_GET['section'] === $this->id) {
 			
-			// Add shared file if exists.
 			if (file_exists(dirname(PAYPAL_PAYMENTS_MAIN_FILE) . '/assets/dist/js/shared.js')) {
 				wp_enqueue_script(
 					'paypal_brasil_admin_options_shared',
@@ -926,7 +1064,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 				'all'
 			);
 
-			// Enqueue admin options and localize settings.
 			wp_enqueue_script(
 				$this->id . '_script',
 				plugins_url('assets/dist/js/admin-options-pix.js', PAYPAL_PAYMENTS_MAIN_FILE),
@@ -972,14 +1109,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 		}
 
 		if (is_checkout() || is_checkout_pay_page()) {
-			wp_enqueue_script(
-				'paypal-brasil-pix',
-				plugins_url('assets/dist/js/frontend-pix.js', PAYPAL_PAYMENTS_MAIN_FILE),
-				array('jquery'),
-				PAYPAL_PAYMENTS_VERSION,
-				true
-			);
-
 			wp_enqueue_style(
 				'paypal-brasil-pix',
 				plugins_url('assets/dist/css/frontend-pix.css', PAYPAL_PAYMENTS_MAIN_FILE),
@@ -995,7 +1124,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	 */
 	public function process_refund($order_id, $amount = null, $reason = '')
 	{
-		//TODO - Implementar refund.
 		return new WP_Error('error', __('Reembolso PIX em desenvolvimento.', 'paypal-brasil-para-woocommerce'));
 	}
 
@@ -1022,29 +1150,75 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	}
 
 	/**
-	 * Gera um QR Code a partir de uma string PIX e retorna como um Data URI.
+	 * Generates the QR Code for a Pix "copy and paste" string as a data URI.
 	 *
-	 * @param string $pixString A string completa do PIX "Copia e Cola" (começando com "000201...").
-	 * @return string O Data URI da imagem PNG do QR Code.
+	 * @param string $pixString Full Pix "copy and paste" string (starting with "000201...").
+	 * @return string PNG data URI, or an empty string on failure.
 	 */
-	function gerar_qr_code_pix_data_uri($pixString)
+	public function gerar_qr_code_pix_data_uri($pixString)
 	{
+		// GD renders the PNG and bacon needs iconv to encode the payload; without
+		// them the view falls back to the "copy and paste" code.
+		$missing_extensions = array();
+		if (!function_exists('imagecreatetruecolor') || !function_exists('imagepng')) {
+			$missing_extensions[] = 'gd';
+		}
+		if (!function_exists('iconv')) {
+			$missing_extensions[] = 'iconv';
+		}
+
+		if ($missing_extensions) {
+			WC_PAYPAL_LOGGER::log(
+				'QR Code PIX não gerado: extensões PHP ausentes (' . implode(', ', $missing_extensions) . ').',
+				$this->id,
+				'error',
+				array( 'extensoes_ausentes' => $missing_extensions, 'php_version' => PHP_VERSION )
+			);
+			return '';
+		}
+
 		try {
-			$result = Builder::create()
-				->writer(new PngWriter())
-				->writerOptions([])
-				->data($pixString) // A string do PIX Copia e Cola vai aqui
-				->encoding(new Encoding('UTF-8'))
-				->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
-				->size(300) // Tamanho da imagem em pixels
-				->margin(10)
-				->roundBlockSizeMode(new RoundBlockSizeModeMargin())
-				->build();
+			$qrCode = Encoder::encode($pixString, ErrorCorrectionLevel::M());
+			$matrix = $qrCode->getMatrix();
+			$width  = $matrix->getWidth();
 
-			return $result->getDataUri();
+			$margin = 4;
+			$scale  = 4;
+			$size   = $scale * ($width + (2 * $margin));
 
-		} catch (Exception $e) {
-			return __('Erro ao gerar QR code.', 'paypal-brasil-para-woocommerce');
+			$image = imagecreatetruecolor($size, $size);
+			if (!$image) {
+				return '';
+			}
+
+			$white = imagecolorallocate($image, 255, 255, 255);
+			$black = imagecolorallocate($image, 0, 0, 0);
+			imagefill($image, 0, 0, $white);
+
+			for ($y = 0; $y < $width; $y++) {
+				for ($x = 0; $x < $width; $x++) {
+					if (1 === $matrix->get($x, $y)) {
+						imagefilledrectangle(
+							$image,
+							($x + $margin) * $scale,
+							($y + $margin) * $scale,
+							($x + $margin + 1) * $scale - 1,
+							($y + $margin + 1) * $scale - 1,
+							$black
+						);
+					}
+				}
+			}
+
+			ob_start();
+			imagepng($image);
+			$png = ob_get_clean();
+			imagedestroy($image);
+
+			return 'data:image/png;base64,' . base64_encode($png);
+
+		} catch (\Throwable $e) {
+			return '';
 		}
 	}
 
@@ -1068,16 +1242,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 
 
 	/**
-	 * Init ajax request
-	 *
-	 * @return void
-	 */
-	public function init_ajax_request() {
-		add_action( 'wp_ajax_paypal_check_pix_payment_status', array( $this, 'ajax_paypal_check_pix_payment_status' ) );
-		add_action( 'wp_ajax_nopriv_paypal_check_pix_payment_status', array( $this, 'ajax_paypal_check_pix_payment_status' ) );
-	}
-
-	/**
 	 *  AJAX handler for PIX status checking
 	 *
 	 * @return void
@@ -1091,23 +1255,40 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 				wp_send_json_error( array( 'error' => 'Missing order ID' ), 400 );
 			}
 
-			$order_id = absint( $_REQUEST['order_id'] );
-			$order = wc_get_order($order_id);
-			if ( ! $order ) {
+			$order_id  = absint( $_REQUEST['order_id'] );
+			$order_key = isset( $_REQUEST['order_key'] ) ? wc_clean( wp_unslash( $_REQUEST['order_key'] ) ) : '';
+			$order     = wc_get_order( $order_id );
+
+			if ( ! $order || $order->get_payment_method() !== $this->id || ! hash_equals( $order->get_order_key(), $order_key ) ) {
 				wp_send_json_error( array( 'error' => 'Invalid order ID' ), 400 );
 			}
-	
-			$paypal_order_id = $order->get_meta('paypal_brasil_pix_order_id');
-			$response = $this->api->get_payment($paypal_order_id,array(),'pix');
+
+			$paypal_order_id = $order->get_meta( 'paypal_brasil_pix_order_id' );
+			if ( empty( $paypal_order_id ) ) {
+				wp_send_json_error( array( 'error' => 'Missing PayPal order ID' ), 400 );
+			}
+
+			try {
+				$response = $this->api->get_payment( $paypal_order_id, array(), 'pix' );
+			} catch ( PayPal_Brasil_API_Exception $ex ) {
+				$error = $ex->getData();
+
+				if ( isset( $error['name'] ) && 'RESOURCE_NOT_FOUND' === $error['name'] ) {
+					wp_send_json_error( array( 'status' => 'EXPIRED', 'paypal_status' => 'RESOURCE_NOT_FOUND' ), 200 );
+				}
+
+				throw $ex;
+			}
+
 			$paypal_order_status = isset( $response['status'] ) ? $response['status'] : '';
 	
-			//FIXME - Revisar status que podem ser retornados.
-			if(isset($response['purchase_units'][0]['payments']['captures']['0']['status'])){
+			if (isset($response['purchase_units'][0]['payments']['captures'][0]['status'])) {
 				$capture_status = $response['purchase_units'][0]['payments']['captures'][0]['status'];
 				if ($capture_status == 'COMPLETED') {
-					do_action('wc_bcdc_brasil_process_payment_success', $order_id);
+					do_action('wc_pix_brasil_process_payment_success', $order_id);
 					if ($order && $order->get_status() === 'on-hold') {
 						$capture_id = $response['purchase_units'][0]['payments']['captures'][0]['id'];
+						$order->update_meta_data('paypal_brasil_pix_capture_id', $capture_id);
 						$order->payment_complete($capture_id);
 						$order->add_order_note(
 							sprintf(
@@ -1119,17 +1300,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 					}
 
 					wp_send_json_success(array('status' => 'COMPLETED'), 200);
-				}
-		
-				if($capture_status == 'EXPIRED'){
-					$order->add_order_note(__("Pagamento PIX expirado."));
-					$order->update_status('wc-failed');
-					$order->save();
-					wp_send_json_error(array('status' => 'EXPIRED'), 200);
-				}
-		
-				if($capture_status == 'WAITING'){
-					wp_send_json_error(array('status' => 'WAITING'), 200);
 				}
 			}
 
@@ -1144,14 +1314,27 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 
 			wp_send_json_error( array( 'status' => 'UNKNOWN', 'error' => 'Unable to read capture status' ), 200 );
 		} catch (\Throwable $th) {
-			//TODO - INCLUDE LOGS
+			WC_PAYPAL_LOGGER::log('Error checking PIX payment status: ' . $th->getMessage(), $this->id, 'error');
 			wp_send_json_error(array('status' => 'Internal error'), 500);
 		}
-
-		
 	}
 
+}
 
+// Register the PIX payment status AJAX at file scope so it is available in
+// admin-ajax.php, where WooCommerce does not instantiate the gateway (its
+// constructor never runs, so the hook must not live inside __construct).
+add_action( 'wp_ajax_paypal_check_pix_payment_status', 'paypal_brasil_pix_check_payment_status_ajax' );
+add_action( 'wp_ajax_nopriv_paypal_check_pix_payment_status', 'paypal_brasil_pix_check_payment_status_ajax' );
 
+function paypal_brasil_pix_check_payment_status_ajax() {
+	// Reuse the instance registered by WooCommerce instead of rebuilding the
+	// gateway (and re-registering its hooks) on every status check.
+	$gateway = PayPal_Brasil_PIX_Gateway::get_instance();
 
+	if ( ! $gateway instanceof PayPal_Brasil_PIX_Gateway ) {
+		$gateway = new PayPal_Brasil_PIX_Gateway();
+	}
+
+	$gateway->ajax_paypal_check_pix_payment_status();
 }
