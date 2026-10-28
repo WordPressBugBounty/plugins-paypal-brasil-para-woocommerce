@@ -8,9 +8,14 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+$pix_discount_message = class_exists('PayPal_Brasil_Pix_Discount') ? PayPal_Brasil_Pix_Discount::get_checkout_message() : '';
+
 ?>
 
 <div >
+    <?php if ($pix_discount_message) : ?>
+        <p class="paypal-brasil-pix-discount-message"><strong><?php echo esc_html($pix_discount_message); ?></strong></p>
+    <?php endif; ?>
     <div class="payment-pix-description">
         <img src="<?php echo esc_url( plugins_url( 'assets/images/banner_pix_pp.png', PAYPAL_PAYMENTS_MAIN_FILE ) ); ?>"
              style="max-width: 100%; margin: 0 auto; max-height: 100%; float: none;">

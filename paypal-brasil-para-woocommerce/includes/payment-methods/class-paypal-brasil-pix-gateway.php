@@ -28,6 +28,11 @@ if (!class_exists('WC_PAYPAL_LOGGER')) {
 class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 {
 
+	/**
+	 * Maximum length accepted by the PayPal API for brand_name.
+	 */
+	const RECEIPT_MESSAGE_MAX_LENGTH = 127;
+
 	private static $instance;
 
 	public string $title_complement;
@@ -43,7 +48,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	{
 		parent::__construct();
 
-		// Store some default gateway settings.
 		$this->id = 'paypal-brasil-pix-gateway';
 		$this->has_fields = true;
 		$this->method_title = __('PayPal Brasil PIX', "paypal-brasil-para-woocommerce");
@@ -97,7 +101,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 
 		self::$instance = $this;
 
-
 	}
 
 	/**
@@ -107,7 +110,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 	 */
 	public function get_title()
 	{
-		// A description only for admin section.
 		if (is_admin()) {
 			global $pagenow;
 
@@ -117,7 +119,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 			) : __('PIX', "paypal-brasil-para-woocommerce");
 		}
 
-		// Title for frontend.
 		$title = __('PIX', "paypal-brasil-para-woocommerce");
 		if (!empty($this->title_complement)) {
 			$title .= ' (' . $this->title_complement . ')';
@@ -142,6 +143,15 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 				'title' => __('Nome de exibição (complemento)', "paypal-brasil-para-woocommerce"),
 				'type' => 'text',
 				'description' => __('Texto adicional que aparecerá no título do método de pagamento.', "paypal-brasil-para-woocommerce"),
+			),
+			'receipt_message' => array(
+				'title'       => __('Mensagem recebida (comprovante Pix)', 'paypal-brasil-para-woocommerce'),
+				'type'        => 'text',
+				'default'     => '',
+				'description' => sprintf(
+					__('Texto que o comprador verá no campo "Mensagem recebida" do comprovante Pix. Se ficar em branco, será usado o nome da loja (Título do site, em Configurações > Geral). Até %d caracteres, somente texto (HTML não é permitido).', 'paypal-brasil-para-woocommerce'),
+					self::RECEIPT_MESSAGE_MAX_LENGTH
+				),
 			),
 			'mode' => array(
 				'title' => __('Modo', "paypal-brasil-para-woocommerce"),
@@ -212,7 +222,51 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 					"paypal-brasil-para-woocommerce"
 				),
 			),
+			'discount_percentage' => array(
+				'title' => __('Desconto para pagamento via Pix (%)', 'paypal-brasil-para-woocommerce'),
+				'type' => 'text',
+				'default' => '0',
+				'description' => sprintf(
+					__(
+						'Porcentagem de desconto aplicada ao total dos produtos (após cupons, sem frete) quando o cliente escolhe Pix no checkout. Valor mínimo: 0%% (desconto desativado). Valor máximo: %s%%. Aceita até duas casas decimais.',
+						'paypal-brasil-para-woocommerce'
+					),
+					wc_format_localized_decimal((string) PayPal_Brasil_Pix_Discount_Calculator::MAX_PERCENTAGE)
+				),
+			),
 		);
+	}
+
+	/**
+	 * Validates the Pix discount percentage.
+	 *
+	 * WooCommerce does not show validation exceptions on the gateway settings
+	 * screen, so an invalid value adds an admin notice and keeps the previously
+	 * saved value.
+	 *
+	 * @param string $key
+	 * @param string|null $value
+	 *
+	 * @return string
+	 */
+	public function validate_discount_percentage_field($key, $value)
+	{
+		$percentage = PayPal_Brasil_Pix_Discount_Calculator::normalize_percentage(is_null($value) ? '' : wp_unslash($value));
+
+		if (null === $percentage) {
+			if (class_exists('WC_Admin_Settings')) {
+				WC_Admin_Settings::add_error(
+					sprintf(
+						__('Desconto Pix: informe uma porcentagem entre 0 e %s. O valor anterior foi mantido.', 'paypal-brasil-para-woocommerce'),
+						wc_format_localized_decimal((string) PayPal_Brasil_Pix_Discount_Calculator::MAX_PERCENTAGE)
+					)
+				);
+			}
+
+			return $this->get_option($key, '0');
+		}
+
+		return wc_format_decimal($percentage);
 	}
 
 	function update_credentials()
@@ -381,7 +435,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 
 	public function before_process_admin_options()
 	{
-		// Check first if is enabled
 		$enabled = $this->get_field_value('enabled', $this->form_fields['enabled']);
 		if ($enabled !== 'yes') {
 			return;
@@ -607,6 +660,8 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 		$order_total      = wc_add_number_precision($order->get_total());
 		$qr_expiry_secs   = $this->qr_expiry_to_seconds($this->qr_expiry);
 		$expiry_timestamp = time() + $qr_expiry_secs;
+		$store_name       = $this->get_store_name();
+		$receipt_message  = $this->get_receipt_message($store_name);
 
 		$data = array(
 			'intent' => 'CAPTURE',
@@ -623,6 +678,7 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 					),
 					'invoice_id' => sprintf('%s%s', $this->invoice_id_prefix, $order->get_id()),
 					'custom_id' => $order->get_id(),
+					'soft_descriptor' => $this->truncate_text($store_name, 22),
 				),
 			),
 			'payment_source' => array(
@@ -652,10 +708,18 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 			),
 			'processing_instruction' => 'ORDER_COMPLETE_ON_PAYMENT_APPROVAL',
 			'application_context' => array(
-				'brand_name' => get_bloginfo('name'),
+				'brand_name' => $this->truncate_text($receipt_message, self::RECEIPT_MESSAGE_MAX_LENGTH),
 				'locale' => 'pt-BR',
 			),
 		);
+
+		// The API rejects empty soft_descriptor and brand_name values, so empty fields are not sent.
+		if ('' === $data['purchase_units'][0]['soft_descriptor']) {
+			unset($data['purchase_units'][0]['soft_descriptor']);
+		}
+		if ('' === $data['application_context']['brand_name']) {
+			unset($data['application_context']['brand_name']);
+		}
 
 		try {
 
@@ -664,7 +728,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 
 			$pix_data = $this->extract_pix_data($response);
 
-			// Without the "copy and paste" payload the customer has no way to pay.
 			if (empty($pix_data['qr_payload'])) {
 				throw new Exception(__('Não foi possível gerar o QR Code PIX. Tente novamente.', 'paypal-brasil-para-woocommerce'));
 			}
@@ -895,6 +958,113 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 		$e164 = '55' . $digits;
 
 		return substr( $e164, 0, 15 );
+	}
+
+	/**
+	 * Validates the custom Pix receipt message ("Mensagem recebida").
+	 *
+	 * WooCommerce does not show validation exceptions on the gateway settings
+	 * screen, so a value over the limit adds an admin notice and keeps the
+	 * previously saved value.
+	 *
+	 * @param string      $key
+	 * @param string|null $value
+	 *
+	 * @return string
+	 */
+	public function validate_receipt_message_field($key, $value)
+	{
+		$message = $this->sanitize_receipt_message(is_null($value) ? '' : wp_unslash($value));
+
+		if ($this->text_length($message) > self::RECEIPT_MESSAGE_MAX_LENGTH) {
+			if (class_exists('WC_Admin_Settings')) {
+				WC_Admin_Settings::add_error(
+					sprintf(
+						/* translators: %d: maximum number of characters */
+						__('Mensagem do comprovante Pix: use no máximo %d caracteres. O valor anterior foi mantido.', 'paypal-brasil-para-woocommerce'),
+						self::RECEIPT_MESSAGE_MAX_LENGTH
+					)
+				);
+			}
+
+			return $this->get_option($key, '');
+		}
+
+		return $message;
+	}
+
+	/**
+	 * Message sent as brand_name: the custom receipt message or, when empty, the store name.
+	 *
+	 * @param string $store_name
+	 *
+	 * @return string
+	 */
+	private function get_receipt_message($store_name)
+	{
+		$message = $this->sanitize_receipt_message($this->get_option('receipt_message', ''));
+
+		return '' !== $message ? $message : $store_name;
+	}
+
+	/**
+	 * Plain single-line text: no HTML, line breaks or control characters.
+	 *
+	 * @param string $value
+	 *
+	 * @return string
+	 */
+	private function sanitize_receipt_message($value)
+	{
+		$message = wp_check_invalid_utf8((string) $value, true);
+		$message = wp_strip_all_tags($message, true);
+		$message = preg_replace('/[\p{Cc}\s]+/u', ' ', $message);
+
+		return trim((string) $message);
+	}
+
+	/**
+	 * Text length in characters (multibyte safe).
+	 *
+	 * @param string $text
+	 *
+	 * @return int
+	 */
+	private function text_length($text)
+	{
+		return function_exists('mb_strlen') ? mb_strlen($text, 'UTF-8') : strlen($text);
+	}
+
+	/**
+	 * Store name (Site Title in Settings > General) as plain text.
+	 *
+	 * WordPress stores the title escaped (e.g. "Loja &amp; Cia") and PayPal
+	 * displays the text literally, so HTML entities are decoded.
+	 *
+	 * @return string
+	 */
+	private function get_store_name()
+	{
+		return trim(wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES));
+	}
+
+	/**
+	 * Truncates the text to the character limit accepted by the PayPal API.
+	 *
+	 * @param string $text
+	 * @param int    $max_length
+	 *
+	 * @return string
+	 */
+	private function truncate_text($text, $max_length)
+	{
+		$text = (string) $text;
+
+		if (function_exists('mb_substr')) {
+			return trim(mb_substr($text, 0, $max_length, 'UTF-8'));
+		}
+
+		return trim(substr($text, 0, $max_length));
 	}
 
 	/**
@@ -1303,7 +1473,6 @@ class PayPal_Brasil_PIX_Gateway extends PayPal_Brasil_Gateway
 				}
 			}
 
-			// PIX can stay pending before capture is created.
 			if ( in_array( $paypal_order_status, array( 'PAYER_ACTION_REQUIRED', 'CREATED', 'APPROVED', 'SAVED' ), true ) ) {
 				wp_send_json_error( array( 'status' => 'WAITING', 'paypal_status' => $paypal_order_status ), 200 );
 			}

@@ -244,6 +244,34 @@
                 </td>
             </tr>
 
+            <!-- RECEIPT MESSAGE -->
+            <!-- No v-model: the value comes from PHP, so the Vue bundle does not need to be rebuilt. -->
+
+            <tr valign="top">
+                <th scope="row" class="titledesc">
+                    <label for="<?php echo esc_attr($this->get_field_key('receipt_message')); ?>">
+                        <?php echo esc_html($this->get_form_fields()['receipt_message']['title']); ?>
+                    </label>
+                </th>
+                <td class="forminp">
+                    <fieldset>
+                        <legend class="screen-reader-text">
+                            <span>
+                                <?php echo esc_html($this->get_form_fields()['receipt_message']['title']); ?>
+                            </span>
+                        </legend>
+                        <input class="input-text regular-input" type="text"
+                            maxlength="<?php echo esc_attr(PayPal_Brasil_PIX_Gateway::RECEIPT_MESSAGE_MAX_LENGTH); ?>"
+                            id="<?php echo esc_attr($this->get_field_key('receipt_message')); ?>"
+                            name="<?php echo esc_attr($this->get_field_key('receipt_message')); ?>"
+                            value="<?php echo esc_attr($this->get_option('receipt_message', '')); ?>">
+                        <p class="description">
+                            <?php echo esc_html($this->get_form_fields()['receipt_message']['description']); ?>
+                        </p>
+                    </fieldset>
+                </td>
+            </tr>
+
             <h2>
                 <?php _e("Advanced Settings", "paypal-brasil-para-woocommerce"); ?>
             </h2>
@@ -290,6 +318,34 @@
                         </select>
                         <p class="description">
                             <?php _e("Use esta opção para definir o tempo de expiração da fatura.", "paypal-brasil-para-woocommerce"); ?>
+                        </p>
+                    </fieldset>
+                </td>
+            </tr>
+
+            <!-- PIX DISCOUNT -->
+            <!-- No v-model: the value comes from PHP, so the Vue bundle does not need to be rebuilt. -->
+
+            <tr valign="top">
+                <th scope="row" class="titledesc">
+                    <label for="<?php echo esc_attr($this->get_field_key('discount_percentage')); ?>">
+                        <?php echo esc_html($this->get_form_fields()['discount_percentage']['title']); ?>
+                    </label>
+                </th>
+                <td class="forminp">
+                    <fieldset>
+                        <legend class="screen-reader-text">
+                            <span>
+                                <?php echo esc_html($this->get_form_fields()['discount_percentage']['title']); ?>
+                            </span>
+                        </legend>
+                        <input class="input-text regular-input" type="number" min="0"
+                            max="<?php echo esc_attr(PayPal_Brasil_Pix_Discount_Calculator::MAX_PERCENTAGE); ?>" step="0.01"
+                            id="<?php echo esc_attr($this->get_field_key('discount_percentage')); ?>"
+                            name="<?php echo esc_attr($this->get_field_key('discount_percentage')); ?>"
+                            value="<?php echo esc_attr($this->get_option('discount_percentage', '0')); ?>">
+                        <p class="description">
+                            <?php echo esc_html($this->get_form_fields()['discount_percentage']['description']); ?>
                         </p>
                     </fieldset>
                 </td>

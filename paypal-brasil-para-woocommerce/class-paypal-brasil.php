@@ -169,8 +169,10 @@ class PayPal_Brasil
 			include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-bcdc-gateway.php';
 			include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-pix-gateway.php';
 			include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-applepay-gateway.php';
+			include_once dirname(__FILE__) . '/includes/helpers/class-paypal-brasil-pix-discount-calculator.php';
+			include_once dirname(__FILE__) . '/includes/class-paypal-brasil-pix-discount.php';
+			PayPal_Brasil_Pix_Discount::init();
 
-			// Integração do Apple Pay com o Checkout em Blocos (Cart & Checkout Blocks).
 			if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
 				include_once dirname(__FILE__) . '/includes/payment-methods/class-paypal-brasil-applepay-blocks-integration.php';
 				add_action(
@@ -222,7 +224,6 @@ class PayPal_Brasil
 			return;
 		}
 
-		// Retry later if PayPal API was unavailable.
 		set_transient('paypal_brasil_webhook_sync_backoff', 1, HOUR_IN_SECONDS);
 	}
 

@@ -4,7 +4,7 @@ Contributors: suporteppbr, bycoders
 Tags: paypal, woocommerce, checkout transparente, paypal brasil, ecommerce
 Requires at least: 4.4
 Tested up to: 7.0.0
-Stable tag: 1.8.1
+Stable tag: 1.8.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI:  [http://www.gnu.org/licenses/gpl-2.0.html](http://www.gnu.org/licenses/gpl-2.0.html)
@@ -89,6 +89,11 @@ If you have any questions or difficulties using the plugin, access the Support s
 5. PayPal account login screen.
 
 == Changelog ==
+
+= 1.8.2 =
+* Feature: Added a percentage discount for Pix payments in the classic checkout.
+* Feature: Added a setting to customize the message shown on the Pix payment receipt.
+* Fixed: The Pix payment receipt now shows the store name by default.
 
 = 1.8.1 =
 * Fixed: Pix QR Code generation on PHP 7.4.
@@ -320,6 +325,9 @@ If you have any questions or difficulties using the plugin, access the Support s
 * Plugin launch.
 
 == Upgrade Notice ==
+
+= 1.8.2 =
+* Adds a percentage discount for Pix payments and a customizable message on the Pix payment receipt.
 
 = 1.8.1 =
 * Fixes Pix QR Code generation on PHP 7.4 and hardens the Pix payment status check. Update recommended.
